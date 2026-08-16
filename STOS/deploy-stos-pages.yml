@@ -1,0 +1,87 @@
+name: Deploy hardened STOS to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "STOS/**"
+      - ".github/workflows/deploy-stos-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install pinned xterm package
+        run: npm ci --prefix STOS/pages --ignore-scripts --no-audit --no-fund
+
+      - name: Build hardened Pages artifact
+        run: node STOS/pages/build.mjs
+
+      - name: Security gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(find .pages-dist -type f | wc -l | tr -d ' ')" = "4"
+          test -f .pages-dist/.nojekyll
+          test -f .pages-dist/STOS/index.html
+          test -f .pages-dist/STOS/assets/xterm.js
+          test -f .pages-dist/STOS/assets/xterm.css
+
+          ! grep -Fq 'get("parentOrigin")' .pages-dist/STOS/index.html
+          ! grep -Fq 'document.referrer' .pages-dist/STOS/index.html
+          grep -Fq 'parentOrigin: "https://vervneveda.wixsite.com"' .pages-dist/STOS/index.html
+          grep -Fq 'href="./assets/xterm.css"' .pages-dist/STOS/index.html
+          grep -Fq 'src="./assets/xterm.js"' .pages-dist/STOS/index.html
+
+          test "$(wc -c < .pages-dist/STOS/assets/xterm.js)" -gt 100000
+          test "$(wc -c < .pages-dist/STOS/assets/xterm.css)" -gt 5000
+
+          if find .pages-dist -type f \( \
+            -name '.env' -o \
+            -name '*.pem' -o \
+            -name '*.key' -o \
+            -name 'profiles.json' \
+          \) | grep -q .; then
+            echo "Forbidden private file detected in Pages artifact."
+            exit 1
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: .pages-dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.0
