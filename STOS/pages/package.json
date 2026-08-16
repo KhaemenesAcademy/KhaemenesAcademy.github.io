@@ -1,0 +1,9 @@
+{
+  "name": "stos-pages-build",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Deterministic public build for Sovereign Terminal OS",
+  "dependencies": {
+    "@xterm/xterm": "6.0.0"
+  }
+}

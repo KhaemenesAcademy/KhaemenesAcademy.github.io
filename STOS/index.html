@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Sovereign Terminal OS v4 · Gateway Command Center</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
 <style>
 body {
   margin: 0;
@@ -377,8 +379,8 @@ dialog::backdrop{background:rgba(0,0,0,.7)}
 .termWallState.error::before{background:#d65a68}
 
 </style>
-<link rel="stylesheet" href="/assets/xterm.css">
-<script src="/assets/xterm.js"></script>
+<link rel="stylesheet" href="./assets/xterm.css">
+<script src="./assets/xterm.js"></script>
 </head>
 <body>
 <!-- 🟣 KHAEMENES MINI-AGI COLLAPSE SEAM: search "🟣" in source to find this module -->
@@ -1613,18 +1615,8 @@ let terminalViewMode = "wall";
 const terminalSessions = [];
 
 const STOS_GATEWAY = {
-  parentOrigin: (() => {
-    const fromQuery = new URLSearchParams(location.search).get("parentOrigin");
-    const candidates = [fromQuery, document.referrer];
-    for (const value of candidates) {
-      if (!value) continue;
-      try {
-        const origin = new URL(value).origin;
-        if (origin.startsWith("https://")) return origin;
-      } catch {}
-    }
-    return "";
-  })(),
+  // Production trust boundary: only the live Verve N Veda Wix origin may broker tickets.
+  parentOrigin: "https://vervneveda.wixsite.com",
   pending: new Map(),
   sockets: new Map()
 };
