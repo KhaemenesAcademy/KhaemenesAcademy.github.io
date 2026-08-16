@@ -1,0 +1,8 @@
+/*
+ * STOS public frontend dependency stylesheet loader
+ * xterm.js 6.0.0 — MIT licensed upstream project
+ *
+ * Final hardened deployment may replace this file with the actual
+ * @xterm/xterm 6.0.0 css/xterm.css distribution file.
+ */
+@import url("https://unpkg.com/@xterm/xterm@6.0.0/css/xterm.css");
