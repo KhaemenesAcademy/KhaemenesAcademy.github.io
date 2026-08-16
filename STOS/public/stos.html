@@ -1,0 +1,2864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sovereign Terminal OS v4 · Gateway Command Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  font-family: monospace;
+  display: flex;
+  height: 100vh;
+  background: #0e1117;
+  color: #e6edf3;
+}
+#sidebar {
+  width: 280px;
+  border-right: 1px solid #222;
+  padding: 10px;
+  overflow-y: auto;
+}
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+button {
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  padding: 6px;
+  margin: 2px 0;
+  cursor: pointer;
+}
+button:hover { background: #21262d; }
+ul { list-style: none; padding-left: 14px; margin: 0; }
+li { cursor: pointer; margin: 4px 0; }
+.folder::before { content: "📁 "; }
+.file::before { content: "📄 "; }
+.app::before { content: "🚀 "; }
+#editor {
+  flex: 1;
+  background: #0d1117;
+  color: #e6edf3;
+  border: none;
+  padding: 10px;
+  resize: none;
+}
+#imagePreview {
+  max-width: 100%;
+  max-height: 40vh;
+  display: none;
+  margin-top: 8px;
+  object-fit: contain;
+  background: #05070c;
+  border-radius: 4px;
+}
+#path {
+  background: #161b22;
+  padding: 6px;
+  font-size: 12px;
+}
+#toolbar { padding: 6px; background: #0d1117; }
+
+/* 🟣 KHAEMENES MINI-AGI / CODE-CAPSULE SOURCE MARKER — hidden from visible UI */
+:root { --khae-mini-agi-dot:#8b5cf6; }
+#khaeMiniAgiDot { display:none !important; color:var(--khae-mini-agi-dot); }
+
+#breadcrumbs{
+  position:sticky;top:0;z-index:5;
+  padding:7px 10px;border-bottom:1px solid #242a33;
+  background:#0b1119;color:#9aa7b4;font-size:11px;
+}
+#breadcrumbs strong{color:#c4b5fd}
+#capsuleTools{
+  margin-top:10px;padding-top:10px;border-top:1px solid #252b34;
+}
+#capsuleTools h4{margin:0 0 6px;color:#c4b5fd;font-size:12px}
+.purpleButton{
+  border-color:#7c3aed !important;
+  background:linear-gradient(135deg,#2a1744,#4c1d95) !important;
+  color:#ede9fe !important;
+}
+.purpleButton:hover{background:linear-gradient(135deg,#3b1f62,#6d28d9) !important}
+#capsuleNotice{
+  margin-top:6px;padding:7px;border:1px solid #3b285b;border-radius:4px;
+  color:#bcb3ca;background:#120d1b;font-size:10px;line-height:1.45
+}
+dialog{
+  width:min(760px,calc(100% - 32px));max-height:85vh;
+  border:1px solid #30363d;border-radius:7px;background:#0d1117;color:#e6edf3;
+}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+.dialogHead{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid #30363d}
+.dialogHead h3{margin:0;color:#c4b5fd}
+.dialogHead button{margin-left:auto;width:auto}
+.dialogBody{padding-top:10px}
+.dialogBody pre{max-height:42vh;overflow:auto;white-space:pre-wrap;background:#070b10;padding:10px;border:1px solid #252b34}
+
+
+/* =========================================================
+   BLACK HOLE VAULT
+   Encrypted, browser-local, omitted from the visible tree
+   and from normal Mini Cloud exports.
+   ========================================================= */
+#blackHoleVaultEntry[hidden]{display:none !important}
+#blackHoleVaultEntry{
+  width:100%;
+  margin-top:6px;
+  border-color:#3b0764 !important;
+  background:linear-gradient(135deg,#120817,#271039) !important;
+  color:#e9d5ff !important;
+}
+#blackHoleVaultEntry:hover{
+  background:linear-gradient(135deg,#1b0b25,#3b1760) !important;
+}
+#blackHoleVaultDialog{
+  width:min(820px,calc(100% - 32px));
+  max-height:88vh;
+}
+.bhv-grid{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  align-items:center;
+}
+.bhv-grid input{
+  min-width:0;
+  width:100%;
+  box-sizing:border-box;
+  background:#070b10;
+  color:#e6edf3;
+  border:1px solid #30363d;
+  border-radius:4px;
+  padding:8px;
+  font:inherit;
+}
+.bhv-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:10px 0;
+}
+.bhv-status{
+  min-height:18px;
+  padding:7px 8px;
+  border:1px solid #252b34;
+  border-radius:4px;
+  color:#b8c4d0;
+  background:#090d13;
+  font-size:11px;
+  line-height:1.45;
+}
+.bhv-warning{
+  margin-top:8px;
+  padding:8px;
+  border:1px solid #4b2435;
+  border-radius:4px;
+  color:#d8b4c1;
+  background:#170b10;
+  font-size:10px;
+  line-height:1.45;
+}
+#blackHoleVaultList{
+  margin-top:10px;
+  padding:0;
+  border-top:1px solid #252b34;
+}
+#blackHoleVaultList li{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:8px 2px;
+  border-bottom:1px solid #1e252e;
+  cursor:default;
+}
+#blackHoleVaultList strong{
+  display:block;
+  color:#e9d5ff;
+  font-size:12px;
+}
+#blackHoleVaultList small{
+  display:block;
+  color:#8793a0;
+  font-size:10px;
+  margin-top:2px;
+}
+#blackHoleVaultList .bhv-row-actions{
+  display:flex;
+  gap:4px;
+}
+#blackHoleVaultList button{
+  width:auto;
+  margin:0;
+  font-size:10px;
+}
+
+
+
+/* =========================================================
+   SOVEREIGN TERMINAL OS · WORKSPACE + LOCAL SHELL
+   Browser-local shell over the Mini Cloud virtual filesystem.
+   No OS command execution or remote shell occurs in this layer.
+   ========================================================= */
+#workspaceTabs{
+  display:flex;align-items:center;gap:4px;padding:6px 8px;
+  border-bottom:1px solid #242a33;background:#080d13;
+}
+.workspaceTab{
+  width:auto;margin:0;padding:6px 11px;border-radius:4px;
+  color:#9aa7b4;background:#111821;border:1px solid #28313b;
+}
+.workspaceTab.active{color:#f0eaff;border-color:#7c3aed;background:#24123f}
+#workspaceSpacer{flex:1}
+.termStatusBadge{
+  font-size:9px;padding:3px 6px;border:1px solid #2f3a45;border-radius:999px;
+  color:#8da0b3;background:#0b1119;letter-spacing:.06em;
+}
+.termStatusBadge.on{border-color:#315b45;color:#9ee2b6}
+.termStatusBadge.warn{border-color:#654d27;color:#e8c47a}
+#editorWorkspace{display:flex;flex:1;min-height:0;flex-direction:column}
+#terminalWorkspace{display:none;flex:1;min-height:0;flex-direction:column;background:#05080d}
+#terminalWorkspace.active{display:flex}
+#editorWorkspace.hiddenWorkspace{display:none}
+#terminalTopbar{
+  display:flex;align-items:center;gap:6px;padding:5px 7px;
+  background:#0a0f16;border-bottom:1px solid #222b35;
+}
+#terminalTabs{display:flex;gap:4px;align-items:center;overflow-x:auto;flex:1}
+.termSessionTab{
+  width:auto;min-width:92px;margin:0;padding:5px 8px;border-radius:4px;
+  color:#8ea0b2;background:#111821;border:1px solid #28313b;font-size:11px;
+  white-space:nowrap;
+}
+.termSessionTab.active{color:#e9ddff;background:#261443;border-color:#7c3aed}
+#newTerminalBtn{width:auto;margin:0;padding:5px 9px;border-color:#35506b}
+#terminalOutput{
+  flex:1;min-height:0;overflow:auto;padding:10px 12px 4px;
+  white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  color:#d9e2ec;background:radial-gradient(circle at top right,#101828 0,#05080d 42%);
+}
+.termLine{min-height:1.25em}
+.termLine.command{color:#d9c7ff}
+.termLine.error{color:#ff8f9b}
+.termLine.muted{color:#778697}
+.termLine.success{color:#8ee6b0}
+.termLine.accent{color:#c4b5fd}
+.termLine.warn{color:#e4c179}
+#terminalInputRow{
+  display:flex;align-items:flex-start;gap:7px;padding:7px 10px 10px;
+  border-top:1px solid #1f2730;background:#070b10;
+}
+#terminalPrompt{flex:0 0 auto;color:#a78bfa;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding-top:6px}
+#terminalInput{
+  flex:1;min-width:0;background:transparent;color:#eef3f8;border:none;outline:none;
+  padding:6px 0;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+#terminalHint{
+  padding:4px 10px 7px;color:#647386;background:#070b10;font-size:9px;
+  border-top:1px dashed #151d25;
+}
+#terminalLaunchBtn{width:100%;margin-top:6px;border-color:#6546a6;color:#ddd2ff;background:#151024}
+@media (max-width:700px){
+  #sidebar{width:220px}
+  .termStatusBadge{display:none}
+}
+
+
+/* =========================================================
+   STOS v3 · MULTI-TERMINAL WALL
+   ========================================================= */
+#terminalTopbar{flex-wrap:wrap}
+#terminalControls{
+  display:flex;align-items:center;gap:5px;flex:0 0 auto;
+}
+.termViewBtn{
+  width:auto;margin:0;padding:5px 8px;border-radius:4px;
+  color:#91a2b4;background:#0d141d;border:1px solid #2c3947;font-size:10px;
+}
+.termViewBtn.active{color:#efe8ff;border-color:#7550b5;background:#211438}
+#terminalCountBadge{
+  padding:4px 7px;border:1px solid #315b45;border-radius:999px;
+  color:#a5e3b9;background:#0b1711;font-size:9px;letter-spacing:.06em;white-space:nowrap
+}
+#terminalWall{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+  flex:1;min-height:0;overflow:auto;padding:7px;background:#05080d;
+}
+#terminalWall[hidden]{display:none!important}
+.termWallCard{
+  min-width:0;min-height:220px;display:flex;flex-direction:column;
+  border:1px solid #263442;border-radius:7px;background:#081019;overflow:hidden;
+  box-shadow:0 10px 24px rgba(0,0,0,.15);
+}
+.termWallCard.active{border-color:#7c3aed;box-shadow:0 0 0 1px rgba(124,58,237,.25)}
+.termWallCard.test{
+  border-color:#85404a;background:linear-gradient(180deg,#160c11,#080d13 44%);
+  box-shadow:0 0 0 1px rgba(165,42,55,.17);
+}
+.termWallHead{
+  display:flex;align-items:center;gap:7px;padding:7px 8px;
+  border-bottom:1px solid #1e2a36;background:#0c141e;
+}
+.termWallCard.test .termWallHead{background:#1a0e14;border-bottom-color:#512c33}
+.termWallTitle{
+  min-width:0;flex:1;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.termWallMeta{font-size:8px;color:#65778a;white-space:nowrap}
+.termWallState{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 5px;border:1px solid #315b45;
+  border-radius:999px;color:#9fe0b4;background:#0b1711;font-size:7px;font-weight:700;letter-spacing:.07em;
+}
+.termWallState::before{content:"";width:5px;height:5px;border-radius:50%;background:#57bf78}
+.termWallCard.test .termWallState{border-color:#75404a;color:#efb5bf;background:#1a0d12}
+.termWallCard.test .termWallState::before{background:#d65a68}
+.termWallOutput{
+  flex:1;min-height:0;overflow:auto;padding:8px;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  color:#bdc9d5;font:10px/1.42 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+.termWallPromptRow{
+  display:flex;align-items:center;gap:5px;padding:6px 7px;border-top:1px solid #1e2a36;background:#060b10;
+}
+.termWallPrompt{flex:0 0 auto;color:#9c7ae5;font:9px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.termWallCard.test .termWallPrompt{color:#e58691}
+.termWallInput{
+  flex:1;min-width:0;padding:3px 0;border:none;outline:none;background:transparent;color:#edf3f8;
+  font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.termWallFocus{
+  width:auto;margin:0;padding:3px 6px;border:1px solid #314253;border-radius:4px;
+  color:#8fa1b4;background:#101923;font-size:8px;
+}
+.termTestBadge{
+  padding:2px 5px;border:1px solid #7e404a;border-radius:999px;color:#efb5bf;background:#1b0e13;font-size:7px;font-weight:800;letter-spacing:.08em;
+}
+.termPinnedBadge{
+  padding:2px 5px;border:1px solid #34404d;border-radius:999px;color:#718295;background:#0b1118;font-size:7px;letter-spacing:.06em;
+}
+#terminalFocusShell{
+  display:flex;flex:1;min-height:0;flex-direction:column;
+}
+#terminalFocusShell[hidden]{display:none!important}
+.termSessionTab.test{border-color:#75404a;color:#e8aab4;background:#1a0e14}
+.termSessionTab.test.active{border-color:#c65c69;color:#ffe3e7;background:#35151c}
+#terminalOperationalNote{
+  padding:5px 9px;border-top:1px solid #1b2631;background:#070b10;color:#617184;font-size:8px;line-height:1.45
+}
+#terminalOperationalNote strong{color:#c7d2dc}
+@media(max-width:1050px){
+  #terminalWall{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  #terminalControls{width:100%;overflow:auto}
+  #terminalCountBadge{margin-left:auto}
+  .termWallCard{min-height:200px}
+}
+
+
+/* =========================================================
+   STOS v4 · REMOTE GATEWAY / XTERM
+   ========================================================= */
+#remoteTerminalHost{
+  flex:1;min-height:0;position:relative;overflow:hidden;padding:7px;background:#05080d;
+}
+#remoteTerminalHost[hidden]{display:none!important}
+.remoteXtermPane{position:absolute;inset:7px;overflow:hidden}
+.remoteXtermPane[hidden]{display:none!important}
+.remoteXtermPane .xterm{height:100%}
+.remoteXtermPane .xterm-viewport{background:#05080d!important}
+.termWallState.remote{border-color:#65459f;color:#dbcaff;background:#171025}
+.termWallState.remote::before{background:#9c7ae5}
+.termWallState.connecting{border-color:#79642e;color:#ead28c;background:#201a0c}
+.termWallState.connecting::before{background:#d6b95a}
+.termWallState.error{border-color:#75404a;color:#efb5bf;background:#1a0d12}
+.termWallState.error::before{background:#d65a68}
+
+</style>
+<link rel="stylesheet" href="/assets/xterm.css">
+<script src="/assets/xterm.js"></script>
+</head>
+<body>
+<!-- 🟣 KHAEMENES MINI-AGI COLLAPSE SEAM: search "🟣" in source to find this module -->
+<span id="khaeMiniAgiDot" aria-hidden="true">•</span>
+
+
+<div id="sidebar">
+  <h3>Sovereign Terminal OS <small style="display:block;color:#657487;font-size:9px;font-weight:400;margin-top:3px">v4 · Gateway Command Center</small></h3>
+  <button onclick="newFolder()">+ Folder</button>
+  <button onclick="newFile()">+ File</button>
+  <button onclick="uploadFile()">🖼 Upload File</button>
+  <button id="terminalLaunchBtn" type="button" onclick="showWorkspace('terminal')">⌘ Terminal</button>
+  <button onclick="exportCloud()">📦 Export</button>
+  <button onclick="importCloud()">📥 Import</button>
+  <div id="capsuleTools">
+    <h4>Code Capsule</h4>
+    <button class="purpleButton" onclick="collapseSelectedApp()">● Collapse App</button>
+    <button onclick="expandSelectedApp()">Expand App</button>
+    <button onclick="showCapsuleManifest()">Capsule Manifest</button>
+    <div id="capsuleNotice">Rule-based local modularizer. Extracts inline CSS/JS into sibling assets and preserves the original as a version.</div>
+    <button id="blackHoleVaultEntry" class="purpleButton" type="button" hidden>◉ Private Vault</button>
+  </div>
+  <ul id="tree"></ul>
+</div>
+
+<div id="main">
+  <div id="breadcrumbs">Khaemenes › ProReSources › <strong>Sovereign Terminal OS</strong> › Code Capsule</div>
+
+  <div id="workspaceTabs" aria-label="Workspace switcher">
+    <button id="editorWorkspaceBtn" class="workspaceTab active" type="button">✎ Editor</button>
+    <button id="terminalWorkspaceBtn" class="workspaceTab" type="button">⌘ Terminal</button>
+    <div id="workspaceSpacer"></div>
+    <span class="termStatusBadge on" id="localStatusBadge">8 SHELLS ●</span>
+    <span class="termStatusBadge" id="vaultStatusBadge">VAULT LOCKED</span>
+    <span class="termStatusBadge warn" id="gatewayStatusBadge">GATEWAY OFF</span>
+  </div>
+
+  <section id="editorWorkspace">
+    <div id="path">/</div>
+    <textarea id="editor" placeholder="Select a file to edit..."></textarea>
+    <img id="imagePreview" alt="Image preview" />
+    <div id="toolbar">
+      <button onclick="saveFile()">💾 Save</button>
+      <button onclick="showVersions()">🧬 Versions</button>
+      <button onclick="launchApp()">🚀 Launch App</button>
+      <button onclick="deleteItem()">🗑 Delete</button>
+    </div>
+  </section>
+
+  <section id="terminalWorkspace" aria-label="Sovereign Terminal">
+    <div id="terminalTopbar">
+      <div id="terminalTabs"></div>
+      <div id="terminalControls">
+        <button id="terminalWallBtn" class="termViewBtn active" type="button" title="Show every running terminal">▦ Wall</button>
+        <button id="terminalFocusBtn" class="termViewBtn" type="button" title="Focus one terminal">□ Focus</button>
+        <button id="newTerminalBtn" type="button" title="Add another terminal">＋ Terminal</button>
+        <button id="disconnectTerminalBtn" class="termViewBtn" type="button" title="Disconnect the focused gateway terminal">⏏ Disconnect</button>
+        <span id="terminalCountBadge">8 RUNNING</span>
+      </div>
+    </div>
+
+    <div id="terminalWall" aria-label="All running terminals"></div>
+
+    <div id="terminalFocusShell" hidden>
+      <div id="remoteTerminalHost" hidden aria-label="Remote terminal"></div>
+      <div id="terminalOutput" role="log" aria-live="polite"></div>
+      <div id="terminalInputRow">
+        <span id="terminalPrompt">sovereign@local:/$</span>
+        <input id="terminalInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command">
+      </div>
+      <div id="terminalHint">Focused shell · ↑/↓ history · Tab completes paths · Ctrl/Cmd+L clears · Ctrl+C cancels · type <strong>help</strong></div>
+    </div>
+
+    <div id="terminalOperationalNote">
+      <strong>8 browser-local shells start automatically:</strong> Terminal 1–7 are pinned operational slots; TEST is a pinned test profile.
+      Gateway authority is obtained only through a one-use ticket issued by the Wix Admin backend.
+      Terminal 1–7 map only to fixed server-side profiles; TEST is restricted to the disposable non-production sandbox.
+    </div>
+  </section>
+</div>
+
+
+<dialog id="capsuleDialog">
+  <div class="dialogHead">
+    <h3>Code Capsule</h3>
+    <button type="button" onclick="document.getElementById('capsuleDialog').close()">×</button>
+  </div>
+  <div class="dialogBody">
+    <div id="capsuleDialogText"></div>
+    <pre id="capsuleDialogPre"></pre>
+  </div>
+</dialog>
+
+
+<!--
+  BLACK HOLE VAULT UI
+  Hidden by default. Reveal with ?vault=1 or Ctrl+Alt+V.
+  Security does not depend on the UI being hidden: vault records are encrypted.
+-->
+<dialog id="blackHoleVaultDialog">
+  <div class="dialogHead">
+    <h3>Private Vault</h3>
+    <button type="button" id="blackHoleVaultClose">×</button>
+  </div>
+  <div class="dialogBody">
+    <div class="bhv-grid">
+      <input
+        id="blackHoleVaultPassphrase"
+        type="password"
+        autocomplete="new-password"
+        spellcheck="false"
+        placeholder="Vault passphrase"
+        aria-label="Private Vault passphrase"
+      />
+      <button type="button" id="blackHoleVaultUnlock" class="purpleButton">Unlock / Initialize</button>
+    </div>
+
+    <div class="bhv-actions">
+      <button type="button" id="blackHoleVaultImport" disabled>Import hidden file</button>
+      <button type="button" id="blackHoleVaultRefresh" disabled>Refresh</button>
+      <button type="button" id="blackHoleVaultLock" disabled>Lock</button>
+    </div>
+
+    <div id="blackHoleVaultStatus" class="bhv-status" aria-live="polite">
+      Locked. The passphrase is never written to localStorage or sessionStorage.
+    </div>
+
+    <div class="bhv-warning">
+      This vault encrypts the stored file contents with Web Crypto AES-GCM and keeps them in IndexedDB.
+      It is omitted from the visible Mini Cloud tree and from normal Mini Cloud JSON exports.
+      Do not check the original sensitive file into a public GitHub repository and expect this vault
+      to make that public copy private.
+    </div>
+
+    <ul id="blackHoleVaultList"></ul>
+  </div>
+</dialog>
+
+<input
+  id="blackHoleVaultFileInput"
+  type="file"
+  style="display:none"
+/>
+
+<!-- hidden file input for uploads -->
+<input
+  type="file"
+  id="fileInput"
+  style="display:none"
+  accept="image/*,.txt,.md,.json,.html,.css,.js,.pdf,.doc,.docx"
+/>
+
+<script>
+/* ==========================
+   VISIBLE MINI CLOUD CONTENT HANDLING
+   (NO PASSWORD / ENCRYPTION)
+
+   IMPORTANT:
+   The normal tree below remains plain localStorage for compatibility.
+   The separate Black Hole Vault module farther down uses encrypted
+   IndexedDB records and is intentionally excluded from this tree/export.
+========================== */
+
+function encrypt(text){
+  // kept for compatibility – just returns plain text
+  return text == null ? "" : String(text);
+}
+function decrypt(data){
+  return data == null ? "" : String(data);
+}
+
+/* DOM refs */
+const editor       = document.getElementById("editor");
+const imagePreview = document.getElementById("imagePreview");
+const fileInput    = document.getElementById("fileInput");
+
+/* ==========================
+   FILESYSTEM
+========================== */
+let fs = JSON.parse(localStorage.getItem("cloudFS") || "null");
+if (!fs) {
+  fs = {
+    name: "root",
+    type: "folder",
+    children: [
+      { name:"apps", type:"folder", children:[] }
+    ]
+  };
+}
+
+let currentNode = null;
+let currentPath = [];
+
+/* ==========================
+   TREE RENDER
+========================== */
+function renderTree() {
+  const tree = document.getElementById("tree");
+  tree.innerHTML = "";
+  renderNode(fs, tree, []);
+}
+
+function renderNode(node, parent, path) {
+  node.children?.forEach((child, i) => {
+    const li = document.createElement("li");
+    li.textContent = child.name;
+    li.className = (child.type === "file" && child.name === "index.html")
+      ? "app"
+      : child.type;
+    li.onclick = e => {
+      e.stopPropagation();
+      openNode(child, path.concat(i));
+    };
+    parent.appendChild(li);
+    if (child.type === "folder") {
+      const ul = document.createElement("ul");
+      parent.appendChild(ul);
+      renderNode(child, ul, path.concat(i));
+    }
+  });
+}
+
+function lookup(path) {
+  return path.reduce((n,i)=>n.children[i], fs);
+}
+
+/* ==========================
+   PATH / OPEN
+========================== */
+function updatePathBar(path) {
+  const pathEl = document.getElementById("path");
+  if (!path.length) {
+    pathEl.textContent = "/";
+    return;
+  }
+  const parts = path.map((_,i)=>lookup(path.slice(0,i+1)).name);
+  pathEl.textContent = "/" + parts.join("/");
+}
+
+function openNode(node, path) {
+  currentNode = node;
+  currentPath = path;
+  updatePathBar(path);
+
+  if (node.type !== "file") {
+    editor.value = "";
+    imagePreview.style.display = "none";
+    imagePreview.src = "";
+    return;
+  }
+
+  // Detect file kind (image vs text)
+  const kind = node.fileKind ||
+    (typeof node.content === "string" && node.content.startsWith("data:image/") ? "image" : "text");
+
+  if (kind === "image") {
+    editor.value = "";
+    imagePreview.style.display = "block";
+    imagePreview.src = node.content || "";
+  } else {
+    const raw = decrypt(node.content || "");
+    editor.value = raw;
+    imagePreview.style.display = "none";
+    imagePreview.src = "";
+  }
+}
+
+/* Parent of the currently selected node (or fs if root) */
+function parentFolder() {
+  return currentPath.length ? lookup(currentPath.slice(0,-1)) : fs;
+}
+
+/* Choose which folder new items should go into */
+function getTargetFolderForNew() {
+  if (currentNode && currentNode.type === "folder") {
+    return currentNode;
+  }
+  return parentFolder();
+}
+
+/* ==========================
+   ACTIONS: NEW FOLDER / FILE
+========================== */
+function newFolder() {
+  const name = prompt("Folder name?");
+  if (!name) return;
+
+  const target = getTargetFolderForNew();
+  target.children = target.children || [];
+
+  target.children.push({ name, type:"folder", children:[] });
+  const newIndex = target.children.length - 1;
+
+  let basePath;
+  if (currentNode && currentNode.type === "folder") {
+    basePath = currentPath.slice();
+  } else {
+    basePath = currentPath.slice(0, -1);
+  }
+  const newPath = basePath.concat(newIndex);
+
+  persist();
+  openNode(lookup(newPath), newPath);
+}
+
+function newFile() {
+  const name = prompt("File name?");
+  if (!name) return;
+
+  const target = getTargetFolderForNew();
+  target.children = target.children || [];
+
+  target.children.push({
+    name,
+    type:"file",
+    content:"",
+    versions:[],
+    fileKind:"text"
+  });
+  const newIndex = target.children.length - 1;
+
+  let basePath;
+  if (currentNode && currentNode.type === "folder") {
+    basePath = currentPath.slice();
+  } else {
+    basePath = currentPath.slice(0, -1);
+  }
+  const newPath = basePath.concat(newIndex);
+
+  persist();
+  openNode(lookup(newPath), newPath);
+}
+
+/* ==========================
+   ACTIONS: UPLOAD FILE
+========================== */
+function uploadFile() {
+  fileInput.value = "";
+  fileInput.click();
+}
+
+fileInput.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const target = getTargetFolderForNew();
+  target.children = target.children || [];
+
+  const isImage = file.type.startsWith("image/");
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const node = {
+      name: file.name,
+      type: "file",
+      content: reader.result,
+      versions: [],
+      fileKind: isImage ? "image" : "text",
+      mime: file.type || undefined
+    };
+    target.children.push(node);
+
+    const newIndex = target.children.length - 1;
+
+    let basePath;
+    if (currentNode && currentNode.type === "folder") {
+      basePath = currentPath.slice();
+    } else {
+      basePath = currentPath.slice(0, -1);
+    }
+    const newPath = basePath.concat(newIndex);
+
+    persist();
+    openNode(lookup(newPath), newPath);
+  };
+
+  if (isImage) {
+    reader.readAsDataURL(file);   // for <img src="...">
+  } else {
+    reader.readAsText(file);
+  }
+});
+
+/* ==========================
+   SAVE / VERSIONS / APP LAUNCH
+========================== */
+function saveFile() {
+  if (!currentNode || currentNode.type !== "file") return;
+
+  if (currentNode.fileKind === "image") {
+    alert("Image files can't be edited here. Upload a new image file to replace it.");
+    return;
+  }
+
+  // initialize versions array if needed
+  currentNode.versions = currentNode.versions || [];
+
+  // keep previous content as a version (if defined)
+  if (typeof currentNode.content === "string") {
+    currentNode.versions.unshift(currentNode.content);
+  }
+  currentNode.versions = currentNode.versions.slice(0,10);
+
+  // store plain content
+  currentNode.content = encrypt(editor.value);
+  persist();
+}
+
+function showVersions() {
+  if (!currentNode || currentNode.type !== "file") {
+    alert("Select a file to view versions.");
+    return;
+  }
+  if (currentNode.fileKind === "image") {
+    alert("Version restore is not available for image files.");
+    return;
+  }
+  if (!currentNode.versions || !currentNode.versions.length) {
+    alert("No versions recorded for this file yet.");
+    return;
+  }
+  const indexStr = prompt(
+    `Restore version index:\n0 = most recent previous version\n(Available: 0–${currentNode.versions.length - 1})`
+  );
+  if (indexStr === null) return;
+  const v = parseInt(indexStr, 10);
+  if (isNaN(v) || v < 0 || v >= currentNode.versions.length) {
+    alert("Invalid version index.");
+    return;
+  }
+  currentNode.content = currentNode.versions[v];
+  editor.value = decrypt(currentNode.content);
+  persist();
+}
+
+function launchApp() {
+  if (currentNode?.type === "file" && currentNode.name === "index.html") {
+    const html = decrypt(currentNode.content || "");
+    const win = window.open();
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    } else {
+      alert("Popup blocked. Please allow popups for this site to launch the app.");
+    }
+  } else {
+    alert('Select an "index.html" file inside an app folder to launch.');
+  }
+}
+
+/* ==========================
+   DELETE
+========================== */
+function deleteItem() {
+  if (!currentNode || !currentPath.length) {
+    alert("Select a file or folder to delete.");
+    return;
+  }
+  if (!confirm(`Delete "${currentNode.name}"? This cannot be undone.`)) {
+    return;
+  }
+  const parent = parentFolder();
+  const idx = currentPath[currentPath.length - 1];
+  parent.children.splice(idx, 1);
+
+  currentNode = null;
+  currentPath = [];
+  editor.value = "";
+  imagePreview.style.display = "none";
+  imagePreview.src = "";
+  updatePathBar([]);
+
+  persist();
+}
+
+/* ==========================
+   EXPORT / IMPORT
+========================== */
+function exportCloud() {
+  const blob = new Blob([JSON.stringify(fs, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mini-cloud.json";
+  a.click();
+}
+
+function importCloud() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const imported = JSON.parse(reader.result);
+        // minimal validation: must at least be a folder root
+        if (!imported || imported.type !== "folder" || !Array.isArray(imported.children)) {
+          alert("Invalid cloud file format.");
+          return;
+        }
+        fs = imported;
+        currentNode = null;
+        currentPath = [];
+        editor.value = "";
+        imagePreview.style.display = "none";
+        imagePreview.src = "";
+        updatePathBar([]);
+        persist();
+      } catch (err) {
+        alert("Could not import cloud file (invalid JSON).");
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+
+/* ==========================
+   🟣 KHAEMENES CODE CAPSULE
+   Rule-based modularizer.
+   No remote AI/model is implied.
+========================== */
+
+function capsuleSanitizeName(name){
+  return String(name || "app")
+    .replace(/[^\w.\-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "app";
+}
+
+function findChild(folder, name, type){
+  return (folder.children || []).find(child =>
+    child.name === name && (!type || child.type === type)
+  ) || null;
+}
+
+function ensureFolder(parent, name){
+  parent.children = parent.children || [];
+  let folder = findChild(parent, name, "folder");
+  if (!folder){
+    folder = {name, type:"folder", children:[]};
+    parent.children.push(folder);
+  }
+  return folder;
+}
+
+function upsertTextFile(parent, name, content){
+  parent.children = parent.children || [];
+  let file = findChild(parent, name, "file");
+  if (!file){
+    file = {name, type:"file", content:"", versions:[], fileKind:"text"};
+    parent.children.push(file);
+  }
+  file.versions = file.versions || [];
+  if (typeof file.content === "string" && file.content !== ""){
+    file.versions.unshift(file.content);
+    file.versions = file.versions.slice(0,10);
+  }
+  file.content = String(content ?? "");
+  file.fileKind = "text";
+  return file;
+}
+
+function selectedAppContext(){
+  if (!currentNode || currentNode.type !== "file" || currentNode.name !== "index.html"){
+    alert('Select an "index.html" file inside an app folder first.');
+    return null;
+  }
+  const appFolder = parentFolder();
+  if (!appFolder || appFolder.type !== "folder"){
+    alert("The selected index.html must be inside an app folder.");
+    return null;
+  }
+  return {indexFile:currentNode, appFolder};
+}
+
+function extractInlineBlocks(html){
+  const styles = [];
+  const scripts = [];
+
+  let shell = String(html || "");
+
+  shell = shell.replace(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi, (_, body) => {
+    styles.push(body.trim());
+    return "";
+  });
+
+  shell = shell.replace(/<script(?![^>]*\bsrc\s*=)(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi, (_, body) => {
+    scripts.push(body.trim());
+    return "";
+  });
+
+  return {shell, styles, scripts};
+}
+
+function injectCapsuleLinks(shell, cssPath, jsPath){
+  let out = shell;
+
+  const marker = '<!-- 🟣 KHAEMENES MINI-AGI COLLAPSE SEAM -->';
+
+  if (cssPath){
+    const link = `${marker}\n<link rel="stylesheet" href="${cssPath}">`;
+    out = /<\/head>/i.test(out)
+      ? out.replace(/<\/head>/i, `${link}\n</head>`)
+      : `${link}\n${out}`;
+  }
+
+  if (jsPath){
+    const script = `${marker}\n<script src="${jsPath}" defer><\/script>`;
+    out = /<\/body>/i.test(out)
+      ? out.replace(/<\/body>/i, `${script}\n</body>`)
+      : `${out}\n${script}`;
+  }
+
+  return out;
+}
+
+function collapseSelectedApp(){
+  const ctx = selectedAppContext();
+  if (!ctx) return;
+
+  const html = decrypt(ctx.indexFile.content || "");
+  if (!html.trim()){
+    alert("The selected index.html is empty.");
+    return;
+  }
+
+  // Preserve original as a normal version before changing anything.
+  ctx.indexFile.versions = ctx.indexFile.versions || [];
+  ctx.indexFile.versions.unshift(ctx.indexFile.content || "");
+  ctx.indexFile.versions = ctx.indexFile.versions.slice(0,10);
+
+  const extracted = extractInlineBlocks(html);
+  if (!extracted.styles.length && !extracted.scripts.length){
+    alert("No inline <style> or inline <script> blocks were found to collapse.");
+    return;
+  }
+
+  const assets = ensureFolder(ctx.appFolder, "assets");
+  const css = extracted.styles.join("\n\n/* ---- collapsed style block ---- */\n\n");
+  const js = extracted.scripts.join("\n\n/* ---- collapsed script block ---- */\n\n");
+
+  if (css) upsertTextFile(assets, "app.css", css);
+  if (js) upsertTextFile(assets, "app.js", js);
+
+  const shell = injectCapsuleLinks(
+    extracted.shell,
+    css ? "assets/app.css" : "",
+    js ? "assets/app.js" : ""
+  );
+
+  ctx.indexFile.content = shell;
+  ctx.indexFile.capsule = {
+    schema:"khaemenes-code-capsule",
+    version:1,
+    collapsedAt:new Date().toISOString(),
+    cssFile:css ? "assets/app.css" : "",
+    jsFile:js ? "assets/app.js" : "",
+    originalBytes:html.length,
+    shellBytes:shell.length,
+    styleBlocks:extracted.styles.length,
+    scriptBlocks:extracted.scripts.length
+  };
+
+  upsertTextFile(
+    ctx.appFolder,
+    "capsule-manifest.json",
+    JSON.stringify({
+      ...ctx.indexFile.capsule,
+      appFolder:ctx.appFolder.name,
+      entry:"index.html",
+      sourceMarker:"🟣"
+    }, null, 2)
+  );
+
+  editor.value = shell;
+  persist();
+  showCapsuleManifest();
+}
+
+function expandSelectedApp(){
+  const ctx = selectedAppContext();
+  if (!ctx) return;
+
+  const assets = findChild(ctx.appFolder, "assets", "folder");
+  const cssFile = assets && findChild(assets, "app.css", "file");
+  const jsFile = assets && findChild(assets, "app.js", "file");
+
+  let shell = decrypt(ctx.indexFile.content || "");
+  if (!cssFile && !jsFile){
+    alert("No Code Capsule assets were found for this app.");
+    return;
+  }
+
+  // Preserve collapsed shell as a version.
+  ctx.indexFile.versions = ctx.indexFile.versions || [];
+  ctx.indexFile.versions.unshift(ctx.indexFile.content || "");
+  ctx.indexFile.versions = ctx.indexFile.versions.slice(0,10);
+
+  if (cssFile){
+    const css = decrypt(cssFile.content || "");
+    shell = shell.replace(
+      /<!-- 🟣 KHAEMENES MINI-AGI COLLAPSE SEAM -->\s*<link rel="stylesheet" href="assets\/app\.css">\s*/i,
+      `<style>\n${css}\n</style>\n`
+    );
+  }
+
+  if (jsFile){
+    const js = decrypt(jsFile.content || "");
+    shell = shell.replace(
+      /<!-- 🟣 KHAEMENES MINI-AGI COLLAPSE SEAM -->\s*<script src="assets\/app\.js" defer><\/script>\s*/i,
+      `<script>\n${js}\n<\/script>\n`
+    );
+  }
+
+  ctx.indexFile.content = shell;
+  ctx.indexFile.capsule = {
+    ...(ctx.indexFile.capsule || {}),
+    expandedAt:new Date().toISOString()
+  };
+  editor.value = shell;
+  persist();
+
+  const dlg = document.getElementById("capsuleDialog");
+  document.getElementById("capsuleDialogText").textContent =
+    "The app has been expanded back into a single-file entry. Capsule assets remain in /assets until you delete them.";
+  document.getElementById("capsuleDialogPre").textContent =
+    `Expanded ${ctx.appFolder.name}/index.html`;
+  dlg.showModal();
+}
+
+function showCapsuleManifest(){
+  const ctx = selectedAppContext();
+  if (!ctx) return;
+
+  const manifestFile = findChild(ctx.appFolder, "capsule-manifest.json", "file");
+  const content = manifestFile
+    ? decrypt(manifestFile.content || "")
+    : JSON.stringify(ctx.indexFile.capsule || {status:"No capsule manifest yet."}, null, 2);
+
+  const dlg = document.getElementById("capsuleDialog");
+  document.getElementById("capsuleDialogText").textContent =
+    "Code Capsule manifest. The 🟣 marker identifies the hidden module seam in generated HTML.";
+  document.getElementById("capsuleDialogPre").textContent = content;
+  dlg.showModal();
+}
+
+
+
+/* =========================================================
+   BLACK HOLE VAULT
+   ---------------------------------------------------------
+   Purpose:
+   - Store selected private files outside the normal Mini Cloud tree.
+   - Encrypt each record with AES-GCM before IndexedDB persistence.
+   - Derive encryption keys from a user passphrase with PBKDF2-SHA256.
+   - Keep only opaque record IDs + encrypted envelopes in IndexedDB.
+   - Never include vault records in exportCloud().
+   - Never persist the passphrase or derived key.
+
+   Visibility:
+   - UI is hidden by default.
+   - Reveal with ?vault=1 OR Ctrl+Alt+V.
+   - UI obscurity is NOT treated as security. Encryption is the boundary.
+
+   Limits:
+   - This protects browser-local stored records at rest.
+   - It cannot make a file private if that file is still committed to
+     a public GitHub repository or otherwise publicly served.
+   ========================================================= */
+
+const BLACK_HOLE_VAULT = Object.freeze({
+  DB_NAME: "sovereign-black-hole-vault-v1",
+  DB_VERSION: 1,
+  STORE: "records",
+  SENTINEL_ID: "__vault_check__",
+  SENTINEL_TEXT: "SOVEREIGN_BLACK_HOLE_V1",
+  PBKDF2_ITERATIONS: 310000
+});
+
+let blackHoleDb = null;
+let blackHolePassphrase = null;
+
+const bhvEntry = document.getElementById("blackHoleVaultEntry");
+const bhvDialog = document.getElementById("blackHoleVaultDialog");
+const bhvPass = document.getElementById("blackHoleVaultPassphrase");
+const bhvUnlock = document.getElementById("blackHoleVaultUnlock");
+const bhvImport = document.getElementById("blackHoleVaultImport");
+const bhvRefresh = document.getElementById("blackHoleVaultRefresh");
+const bhvLock = document.getElementById("blackHoleVaultLock");
+const bhvStatus = document.getElementById("blackHoleVaultStatus");
+const bhvList = document.getElementById("blackHoleVaultList");
+const bhvFileInput = document.getElementById("blackHoleVaultFileInput");
+
+function bhvSetStatus(message){
+  if (bhvStatus) bhvStatus.textContent = String(message || "");
+}
+
+function bhvBytes(bytes){
+  const n = Math.max(0, Number(bytes) || 0);
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 ** 2) return `${(n / 1024).toFixed(1)} KB`;
+  if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1)} MB`;
+  return `${(n / 1024 ** 3).toFixed(2)} GB`;
+}
+
+function bhvRandomId(){
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  const a = crypto.getRandomValues(new Uint8Array(16));
+  return [...a].map((b,i)=>
+    ([4,6,8,10].includes(i) ? "-" : "") + b.toString(16).padStart(2,"0")
+  ).join("");
+}
+
+function bhvRequest(request){
+  return new Promise((resolve,reject)=>{
+    request.onsuccess = ()=>resolve(request.result);
+    request.onerror = ()=>reject(request.error || new Error("indexeddb-request-failed"));
+  });
+}
+
+function bhvTransaction(tx){
+  return new Promise((resolve,reject)=>{
+    tx.oncomplete = ()=>resolve(true);
+    tx.onabort = ()=>reject(tx.error || new Error("indexeddb-transaction-aborted"));
+    tx.onerror = ()=>reject(tx.error || new Error("indexeddb-transaction-failed"));
+  });
+}
+
+async function bhvOpenDb(){
+  if (blackHoleDb) return blackHoleDb;
+  if (!globalThis.indexedDB) throw new Error("IndexedDB is unavailable in this browser.");
+
+  const request = indexedDB.open(BLACK_HOLE_VAULT.DB_NAME, BLACK_HOLE_VAULT.DB_VERSION);
+  request.onupgradeneeded = event => {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains(BLACK_HOLE_VAULT.STORE)){
+      db.createObjectStore(BLACK_HOLE_VAULT.STORE, {keyPath:"id"});
+    }
+  };
+
+  blackHoleDb = await bhvRequest(request);
+  blackHoleDb.onversionchange = ()=>{
+    try { blackHoleDb.close(); } catch {}
+    blackHoleDb = null;
+  };
+  return blackHoleDb;
+}
+
+async function bhvGetRecord(id){
+  const db = await bhvOpenDb();
+  const tx = db.transaction(BLACK_HOLE_VAULT.STORE,"readonly");
+  return await bhvRequest(tx.objectStore(BLACK_HOLE_VAULT.STORE).get(id));
+}
+
+async function bhvPutRecord(record){
+  const db = await bhvOpenDb();
+  const tx = db.transaction(BLACK_HOLE_VAULT.STORE,"readwrite");
+  tx.objectStore(BLACK_HOLE_VAULT.STORE).put(record);
+  await bhvTransaction(tx);
+}
+
+async function bhvDeleteRecord(id){
+  const db = await bhvOpenDb();
+  const tx = db.transaction(BLACK_HOLE_VAULT.STORE,"readwrite");
+  tx.objectStore(BLACK_HOLE_VAULT.STORE).delete(id);
+  await bhvTransaction(tx);
+}
+
+async function bhvAllRecords(){
+  const db = await bhvOpenDb();
+  const tx = db.transaction(BLACK_HOLE_VAULT.STORE,"readonly");
+  return await bhvRequest(tx.objectStore(BLACK_HOLE_VAULT.STORE).getAll());
+}
+
+async function bhvDeriveKey(passphrase,salt){
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(passphrase),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  return await crypto.subtle.deriveKey(
+    {
+      name:"PBKDF2",
+      salt,
+      iterations:BLACK_HOLE_VAULT.PBKDF2_ITERATIONS,
+      hash:"SHA-256"
+    },
+    material,
+    {name:"AES-GCM",length:256},
+    false,
+    ["encrypt","decrypt"]
+  );
+}
+
+async function bhvEncryptBytes(bytes,passphrase){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await bhvDeriveKey(passphrase,salt);
+  const ciphertext = await crypto.subtle.encrypt(
+    {name:"AES-GCM",iv},
+    key,
+    bytes
+  );
+  return {salt,iv,ciphertext};
+}
+
+async function bhvDecryptBytes(record,passphrase){
+  const key = await bhvDeriveKey(
+    passphrase,
+    new Uint8Array(record.salt)
+  );
+  return await crypto.subtle.decrypt(
+    {name:"AES-GCM",iv:new Uint8Array(record.iv)},
+    key,
+    record.ciphertext
+  );
+}
+
+function bhvPackFile(file,bytes){
+  const meta = {
+    name:file.name || "hidden-file",
+    type:file.type || "application/octet-stream",
+    lastModified:Number(file.lastModified) || 0
+  };
+  const header = new TextEncoder().encode(JSON.stringify(meta));
+  const data = new Uint8Array(bytes);
+  const packed = new Uint8Array(4 + header.length + data.length);
+  const view = new DataView(packed.buffer);
+  view.setUint32(0,header.length,false);
+  packed.set(header,4);
+  packed.set(data,4 + header.length);
+  return packed.buffer;
+}
+
+function bhvUnpackFile(buffer){
+  const bytes = new Uint8Array(buffer);
+  if (bytes.byteLength < 4) throw new Error("Invalid encrypted file envelope.");
+  const view = new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+  const headerLength = view.getUint32(0,false);
+  if (headerLength < 2 || headerLength > bytes.byteLength - 4){
+    throw new Error("Invalid encrypted file metadata.");
+  }
+  const headerBytes = bytes.slice(4,4 + headerLength);
+  const meta = JSON.parse(new TextDecoder().decode(headerBytes));
+  const fileBytes = bytes.slice(4 + headerLength);
+  return {meta,fileBytes};
+}
+
+async function bhvCreateSentinel(passphrase){
+  const encrypted = await bhvEncryptBytes(
+    new TextEncoder().encode(BLACK_HOLE_VAULT.SENTINEL_TEXT),
+    passphrase
+  );
+  await bhvPutRecord({
+    id:BLACK_HOLE_VAULT.SENTINEL_ID,
+    kind:"sentinel",
+    createdAt:new Date().toISOString(),
+    salt:encrypted.salt,
+    iv:encrypted.iv,
+    ciphertext:encrypted.ciphertext
+  });
+}
+
+async function bhvVerifyPassphrase(passphrase){
+  const sentinel = await bhvGetRecord(BLACK_HOLE_VAULT.SENTINEL_ID);
+
+  // First use: initialize the vault with this passphrase.
+  if (!sentinel){
+    if (passphrase.length < 12){
+      throw new Error("Use a vault passphrase of at least 12 characters.");
+    }
+    await bhvCreateSentinel(passphrase);
+    return {initialized:true};
+  }
+
+  try{
+    const plain = await bhvDecryptBytes(sentinel,passphrase);
+    const text = new TextDecoder().decode(plain);
+    if (text !== BLACK_HOLE_VAULT.SENTINEL_TEXT) throw new Error("invalid");
+    return {initialized:false};
+  }catch{
+    throw new Error("Vault passphrase was not accepted.");
+  }
+}
+
+function bhvSetUnlocked(unlocked){
+  bhvImport.disabled = !unlocked;
+  bhvRefresh.disabled = !unlocked;
+  bhvLock.disabled = !unlocked;
+  bhvUnlock.disabled = unlocked;
+  bhvPass.disabled = unlocked;
+
+  if (!unlocked){
+    blackHolePassphrase = null;
+    bhvPass.value = "";
+    bhvList.innerHTML = "";
+  }
+}
+
+async function bhvRenderList(){
+  if (!blackHolePassphrase) return;
+
+  bhvList.innerHTML = "";
+  const records = (await bhvAllRecords())
+    .filter(record=>record.id !== BLACK_HOLE_VAULT.SENTINEL_ID)
+    .sort((a,b)=>String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+
+  if (!records.length){
+    const li = document.createElement("li");
+    li.textContent = "No encrypted files are stored in the Private Vault.";
+    bhvList.appendChild(li);
+    bhvSetStatus("Vault unlocked · 0 hidden files.");
+    return;
+  }
+
+  let readable = 0;
+
+  for (const record of records){
+    const li = document.createElement("li");
+    const info = document.createElement("div");
+    const actions = document.createElement("div");
+    actions.className = "bhv-row-actions";
+
+    try{
+      const plain = await bhvDecryptBytes(record,blackHolePassphrase);
+      const unpacked = bhvUnpackFile(plain);
+      const title = document.createElement("strong");
+      title.textContent = unpacked.meta.name || "hidden-file";
+
+      const details = document.createElement("small");
+      details.textContent = `${unpacked.meta.type || "application/octet-stream"} · ${bhvBytes(unpacked.fileBytes.byteLength)} · encrypted`;
+      info.append(title,details);
+
+      const exportButton = document.createElement("button");
+      exportButton.type = "button";
+      exportButton.textContent = "Export";
+      exportButton.onclick = async ()=>{
+        try{
+          const latest = await bhvGetRecord(record.id);
+          const decrypted = await bhvDecryptBytes(latest,blackHolePassphrase);
+          const item = bhvUnpackFile(decrypted);
+          const blob = new Blob([item.fileBytes],{type:item.meta.type || "application/octet-stream"});
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = item.meta.name || "hidden-file";
+          a.click();
+          setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        }catch(err){
+          bhvSetStatus(`Export failed: ${err.message || err}`);
+        }
+      };
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.textContent = "Delete";
+      deleteButton.onclick = async ()=>{
+        if (!confirm(`Permanently delete "${unpacked.meta.name}" from the encrypted vault?`)) return;
+        await bhvDeleteRecord(record.id);
+        await bhvRenderList();
+      };
+
+      actions.append(exportButton,deleteButton);
+      readable++;
+    }catch{
+      const title = document.createElement("strong");
+      title.textContent = "Unreadable encrypted record";
+      const details = document.createElement("small");
+      details.textContent = record.id;
+      info.append(title,details);
+    }
+
+    li.append(info,actions);
+    bhvList.appendChild(li);
+  }
+
+  bhvSetStatus(`Vault unlocked · ${readable} hidden file${readable === 1 ? "" : "s"}.`);
+}
+
+async function bhvUnlockVault(){
+  const passphrase = String(bhvPass.value || "");
+  if (!passphrase){
+    bhvSetStatus("Enter the vault passphrase.");
+    bhvPass.focus();
+    return;
+  }
+
+  bhvSetStatus("Checking encrypted vault…");
+  bhvUnlock.disabled = true;
+
+  try{
+    const result = await bhvVerifyPassphrase(passphrase);
+    blackHolePassphrase = passphrase;
+    bhvSetUnlocked(true);
+    await bhvRenderList();
+    if (result.initialized){
+      bhvSetStatus("Encrypted vault initialized and unlocked. Keep the passphrase somewhere safe; it is not recoverable from this page.");
+    }
+  }catch(err){
+    bhvSetUnlocked(false);
+    bhvUnlock.disabled = false;
+    bhvSetStatus(err.message || "Vault unlock failed.");
+  }
+}
+
+async function bhvImportFile(file){
+  if (!blackHolePassphrase || !file) return;
+  bhvSetStatus(`Encrypting ${file.name}…`);
+
+  const bytes = await file.arrayBuffer();
+  const packed = bhvPackFile(file,bytes);
+  const encrypted = await bhvEncryptBytes(packed,blackHolePassphrase);
+
+  await bhvPutRecord({
+    id:bhvRandomId(),
+    kind:"file",
+    createdAt:new Date().toISOString(),
+    salt:encrypted.salt,
+    iv:encrypted.iv,
+    ciphertext:encrypted.ciphertext
+  });
+
+  // Do not keep plaintext bytes in application state.
+  bhvSetStatus(`${file.name} encrypted and stored outside the visible Mini Cloud tree.`);
+  await bhvRenderList();
+}
+
+function bhvRevealUi(){
+  bhvEntry.hidden = false;
+  if (!bhvDialog.open) bhvDialog.showModal();
+  setTimeout(()=>bhvPass.focus(),50);
+}
+
+function bhvHideUi(){
+  if (bhvDialog.open) bhvDialog.close();
+}
+
+bhvEntry?.addEventListener("click",bhvRevealUi);
+document.getElementById("blackHoleVaultClose")?.addEventListener("click",bhvHideUi);
+bhvUnlock?.addEventListener("click",bhvUnlockVault);
+bhvPass?.addEventListener("keydown",event=>{
+  if (event.key === "Enter"){
+    event.preventDefault();
+    bhvUnlockVault();
+  }
+});
+bhvImport?.addEventListener("click",()=>{
+  bhvFileInput.value = "";
+  bhvFileInput.click();
+});
+bhvFileInput?.addEventListener("change",async event=>{
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try{
+    await bhvImportFile(file);
+  }catch(err){
+    bhvSetStatus(`Import failed: ${err.message || err}`);
+  }
+});
+bhvRefresh?.addEventListener("click",()=>bhvRenderList());
+bhvLock?.addEventListener("click",()=>{
+  bhvSetUnlocked(false);
+  bhvUnlock.disabled = false;
+  bhvSetStatus("Locked. The passphrase and decrypted filenames were removed from this page's working state.");
+  bhvPass.focus();
+});
+
+// Optional, non-secret UI reveal mechanism.
+// The vault remains cryptographically protected even when the UI is visible.
+if (new URLSearchParams(location.search).get("vault") === "1"){
+  bhvEntry.hidden = false;
+}
+
+document.addEventListener("keydown",event=>{
+  if (event.ctrlKey && event.altKey && String(event.key).toLowerCase() === "v"){
+    event.preventDefault();
+    bhvRevealUi();
+  }
+});
+
+// Clear in-memory passphrase when the page is leaving.
+window.addEventListener("pagehide",()=>{ blackHolePassphrase = null; });
+
+
+
+
+/* =========================================================
+   SOVEREIGN TERMINAL OS · LOCAL SHELL
+   ---------------------------------------------------------
+   Security boundary:
+   - This shell ONLY manipulates the existing browser-local Mini Cloud FS.
+   - It does not eval JavaScript, spawn processes, execute host OS commands,
+     use SSH credentials, or open remote sockets.
+   - Remote PTY/WSS support belongs behind an authenticated gateway and is
+     deliberately left disabled in this client-only foundation.
+   ========================================================= */
+
+const termUI = {
+  editorWorkspace: document.getElementById("editorWorkspace"),
+  terminalWorkspace: document.getElementById("terminalWorkspace"),
+  editorBtn: document.getElementById("editorWorkspaceBtn"),
+  terminalBtn: document.getElementById("terminalWorkspaceBtn"),
+  tabs: document.getElementById("terminalTabs"),
+  output: document.getElementById("terminalOutput"),
+  input: document.getElementById("terminalInput"),
+  prompt: document.getElementById("terminalPrompt"),
+  newBtn: document.getElementById("newTerminalBtn"),
+  disconnectBtn: document.getElementById("disconnectTerminalBtn"),
+  wallBtn: document.getElementById("terminalWallBtn"),
+  focusBtn: document.getElementById("terminalFocusBtn"),
+  wall: document.getElementById("terminalWall"),
+  focusShell: document.getElementById("terminalFocusShell"),
+  remoteHost: document.getElementById("remoteTerminalHost"),
+  inputRow: document.getElementById("terminalInputRow"),
+  hint: document.getElementById("terminalHint"),
+  countBadge: document.getElementById("terminalCountBadge"),
+  vaultBadge: document.getElementById("vaultStatusBadge"),
+  gatewayBadge: document.getElementById("gatewayStatusBadge")
+};
+
+const STOS_TERMINAL_STATE_KEY = "stosTerminalSessionsV3";
+const STOS_DEFAULT_OPERATIONAL_TERMINALS = 7;
+const STOS_MAX_TERMINALS = 24;
+let terminalSessionCounter = 0;
+let activeTerminalSessionId = null;
+let terminalViewMode = "wall";
+const terminalSessions = [];
+
+const STOS_GATEWAY = {
+  parentOrigin: (() => {
+    const fromQuery = new URLSearchParams(location.search).get("parentOrigin");
+    const candidates = [fromQuery, document.referrer];
+    for (const value of candidates) {
+      if (!value) continue;
+      try {
+        const origin = new URL(value).origin;
+        if (origin.startsWith("https://")) return origin;
+      } catch {}
+    }
+    return "";
+  })(),
+  pending: new Map(),
+  sockets: new Map()
+};
+
+function stosPostToParent(message){
+  if (!STOS_GATEWAY.parentOrigin || window.parent === window) return false;
+  window.parent.postMessage(message, STOS_GATEWAY.parentOrigin);
+  return true;
+}
+
+function normalizeGatewayProfile(raw, session){
+  let profile = String(raw || "").trim().toLowerCase();
+  if (!profile) {
+    if (session?.isTest) return "test";
+    const match = String(session?.title || "").match(/^Terminal\s+(\d+)$/i);
+    return match ? `terminal-${match[1]}` : "";
+  }
+  if (/^\d+$/.test(profile)) profile = `terminal-${profile}`;
+  if (/^terminal\d+$/.test(profile)) profile = profile.replace(/^terminal/, "terminal-");
+  return profile;
+}
+
+function gatewayState(session){
+  return session?.gateway?.state || "local";
+}
+
+function gatewaySocket(session){
+  return STOS_GATEWAY.sockets.get(session?.id);
+}
+
+function stripAnsi(text){
+  return String(text || "")
+    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/\r/g, "");
+}
+
+function appendRemotePreview(session, data){
+  if (!session.remotePreview) session.remotePreview = [];
+  const clean = stripAnsi(data);
+  clean.split("\n").forEach(line => {
+    if (line || session.remotePreview.length) session.remotePreview.push(line);
+  });
+  if (session.remotePreview.length > 80) session.remotePreview = session.remotePreview.slice(-80);
+}
+
+function destroyRemoteTerminal(session){
+  try { session?.gateway?.xterm?.dispose?.(); } catch {}
+  try { session?.gateway?.pane?.remove?.(); } catch {}
+  if (session?.gateway) {
+    session.gateway.xterm = null;
+    session.gateway.pane = null;
+  }
+}
+
+function resizeRemoteTerminal(session){
+  const term = session?.gateway?.xterm;
+  const pane = session?.gateway?.pane;
+  if (!term || !pane || pane.hidden) return;
+  const width = Math.max(320, pane.clientWidth || 900);
+  const height = Math.max(180, pane.clientHeight || 520);
+  const cols = Math.max(40, Math.min(220, Math.floor(width / 7.6)));
+  const rows = Math.max(10, Math.min(100, Math.floor(height / 16.5)));
+  try { term.resize(cols, rows); } catch {}
+}
+
+function createRemoteTerminal(session, ws){
+  if (typeof window.Terminal !== "function") {
+    throw new Error("xterm.js is unavailable");
+  }
+
+  destroyRemoteTerminal(session);
+
+  const pane = document.createElement("div");
+  pane.className = "remoteXtermPane";
+  pane.dataset.sessionId = String(session.id);
+  pane.hidden = session.id !== activeTerminalSessionId || terminalViewMode !== "focus";
+  termUI.remoteHost.appendChild(pane);
+
+  const term = new window.Terminal({
+    cursorBlink: true,
+    convertEol: false,
+    scrollback: 6000,
+    fontFamily: "ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace",
+    fontSize: 12,
+    lineHeight: 1.15,
+    theme: {
+      background: "#05080d",
+      foreground: "#d7e0e8",
+      cursor: "#cbb8ff",
+      cursorAccent: "#05080d",
+      selectionBackground: "#4a356f88",
+      black: "#05080d",
+      brightBlack: "#66798a",
+      red: "#d66a75",
+      brightRed: "#f08b96",
+      green: "#66c488",
+      brightGreen: "#8ee3aa",
+      yellow: "#d4b45d",
+      brightYellow: "#ead28c",
+      blue: "#6698c7",
+      brightBlue: "#8cbce7",
+      magenta: "#9c7ae5",
+      brightMagenta: "#cbb8ff",
+      cyan: "#6dbac2",
+      brightCyan: "#91d9df",
+      white: "#d7e0e8",
+      brightWhite: "#ffffff"
+    }
+  });
+
+  term.open(pane);
+  session.gateway.xterm = term;
+  session.gateway.pane = pane;
+
+  term.onData(data => {
+    const current = gatewaySocket(session);
+    if (current?.readyState === WebSocket.OPEN) {
+      current.send(JSON.stringify({ type: "input", data }));
+    }
+  });
+
+  term.onResize(({ cols, rows }) => {
+    const current = gatewaySocket(session);
+    if (current?.readyState === WebSocket.OPEN) {
+      current.send(JSON.stringify({ type: "resize", cols, rows }));
+    }
+  });
+
+  requestAnimationFrame(() => {
+    resizeRemoteTerminal(session);
+    term.focus();
+  });
+}
+
+function showRemotePaneForActiveSession(){
+  if (!termUI.remoteHost) return;
+  const active = activeTerm();
+  const remote = gatewayState(active) === "remote";
+
+  termUI.remoteHost.hidden = !remote || terminalViewMode !== "focus";
+  if (termUI.output) termUI.output.hidden = remote;
+  if (termUI.inputRow) termUI.inputRow.hidden = remote;
+  if (termUI.hint) termUI.hint.hidden = remote;
+
+  termUI.remoteHost.querySelectorAll(".remoteXtermPane").forEach(pane => {
+    pane.hidden = !remote || Number(pane.dataset.sessionId) !== active?.id || terminalViewMode !== "focus";
+  });
+
+  if (remote) {
+    requestAnimationFrame(() => {
+      resizeRemoteTerminal(active);
+      try { active?.gateway?.xterm?.focus?.(); } catch {}
+    });
+  }
+}
+
+function requestGatewayConnection(session, rawProfile){
+  const profileId = normalizeGatewayProfile(rawProfile, session);
+
+  if (!profileId) {
+    termWrite("connect: choose terminal-1 … terminal-7 or test", "error");
+    return;
+  }
+  if (!/^terminal-[1-7]$/.test(profileId) && profileId !== "test") {
+    termWrite("connect: profile is not in the STOS browser allowlist", "error");
+    return;
+  }
+  if (session.isTest && profileId !== "test") {
+    termWrite("TEST may connect only to the disposable test profile.", "error");
+    return;
+  }
+  if (!session.isTest && profileId === "test") {
+    termWrite("The disposable test profile is reserved for TEST.", "error");
+    return;
+  }
+  if (!STOS_GATEWAY.parentOrigin || window.parent === window) {
+    termWrite("Wix broker bridge unavailable. Open STOS from its Wix admin embed.", "warn");
+    return;
+  }
+
+  disconnectGatewaySession(session, false);
+
+  const requestId = crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  session.gateway = { state: "ticket", profileId, requestId, pendingOutput: [] };
+  STOS_GATEWAY.pending.set(requestId, session.id);
+
+  termWrite(`Requesting one-use gateway ticket for ${profileId}…`, "accent");
+  stosPostToParent({ type: "stos:ticket-request", requestId, profileId });
+  renderTerminalSession();
+}
+
+function acceptGatewayTicket(message){
+  const requestId = String(message?.requestId || "");
+  const sessionId = STOS_GATEWAY.pending.get(requestId);
+  if (!sessionId) return;
+
+  STOS_GATEWAY.pending.delete(requestId);
+  const session = terminalSessions.find(item => item.id === sessionId);
+  if (!session) return;
+
+  if (message.error) {
+    session.gateway = { state: "error", profileId: session.gateway?.profileId || "" };
+    const previous = activeTerminalSessionId;
+    activeTerminalSessionId = session.id;
+    termWrite(`Gateway ticket denied: ${message.error}`, "error");
+    activeTerminalSessionId = previous;
+    renderTerminalSession();
+    return;
+  }
+
+  const ticket = String(message.ticket || "");
+  const wsUrl = String(message.wsUrl || "");
+  const profileId = String(message.profileId || session.gateway?.profileId || "");
+
+  if (!ticket || !/^wss:\/\//i.test(wsUrl)) {
+    session.gateway = { state: "error", profileId };
+    const previous = activeTerminalSessionId;
+    activeTerminalSessionId = session.id;
+    termWrite("Gateway returned an invalid one-use ticket response.", "error");
+    activeTerminalSessionId = previous;
+    renderTerminalSession();
+    return;
+  }
+
+  session.gateway = { state: "connecting", profileId, pendingOutput: [] };
+  const ws = new WebSocket(wsUrl, ["stos.v1", `ticket.${ticket}`]);
+  STOS_GATEWAY.sockets.set(session.id, ws);
+
+  ws.addEventListener("message", event => {
+    try {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === "ready") {
+        session.gateway.state = "remote";
+        session.gateway.profileId = msg.profileId || profileId;
+        session.gateway.sessionId = msg.sessionId || "";
+        session.gateway.mode = msg.mode || "remote";
+
+        try {
+          createRemoteTerminal(session, ws);
+          for (const chunk of session.gateway.pendingOutput || []) {
+            session.gateway.xterm.write(chunk);
+          }
+          session.gateway.pendingOutput = [];
+        } catch (error) {
+          session.gateway.state = "error";
+          const previous = activeTerminalSessionId;
+          activeTerminalSessionId = session.id;
+          termWrite(`Terminal renderer unavailable: ${error?.message || error}`, "error");
+          activeTerminalSessionId = previous;
+        }
+
+        const previous = activeTerminalSessionId;
+        activeTerminalSessionId = session.id;
+        termWrite(`Gateway connected · ${msg.label || profileId} · ${msg.mode || "remote"}`, "success");
+        activeTerminalSessionId = previous;
+        renderTerminalSession();
+        return;
+      }
+
+      if (msg.type === "output") {
+        const data = String(msg.data || "");
+        appendRemotePreview(session, data);
+        if (session.gateway?.xterm) session.gateway.xterm.write(data);
+        else session.gateway?.pendingOutput?.push(data);
+        renderTerminalWall();
+        return;
+      }
+
+      if (msg.type === "error") {
+        const previous = activeTerminalSessionId;
+        activeTerminalSessionId = session.id;
+        termWrite(`Gateway: ${msg.message || "terminal error"}`, "error");
+        activeTerminalSessionId = previous;
+        renderTerminalSession();
+        return;
+      }
+
+      if (msg.type === "exit") {
+        const previous = activeTerminalSessionId;
+        activeTerminalSessionId = session.id;
+        termWrite(
+          `Remote terminal exited${msg.code !== null && msg.code !== undefined ? ` · code ${msg.code}` : ""}.`,
+          "warn"
+        );
+        activeTerminalSessionId = previous;
+        renderTerminalSession();
+      }
+    } catch {}
+  });
+
+  ws.addEventListener("close", () => {
+    STOS_GATEWAY.sockets.delete(session.id);
+    destroyRemoteTerminal(session);
+    if (session.gateway) session.gateway.state = "local";
+
+    const previous = activeTerminalSessionId;
+    activeTerminalSessionId = session.id;
+    termWrite("Gateway disconnected; local STOS shell remains available.", "muted");
+    activeTerminalSessionId = previous;
+    renderTerminalSession();
+  });
+
+  ws.addEventListener("error", () => {
+    if (session.gateway) session.gateway.state = "error";
+    renderTerminalSession();
+  });
+}
+
+function disconnectGatewaySession(session, announce = true){
+  if (!session) return;
+
+  for (const [requestId, sessionId] of STOS_GATEWAY.pending) {
+    if (sessionId === session.id) STOS_GATEWAY.pending.delete(requestId);
+  }
+
+  const ws = gatewaySocket(session);
+  if (ws) {
+    try {
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "close" }));
+      ws.close();
+    } catch {}
+    STOS_GATEWAY.sockets.delete(session.id);
+  }
+
+  destroyRemoteTerminal(session);
+  session.gateway = null;
+
+  if (announce) {
+    const previous = activeTerminalSessionId;
+    activeTerminalSessionId = session.id;
+    termWrite("Gateway session closed; returned to local STOS shell.", "muted");
+    activeTerminalSessionId = previous;
+  }
+  renderTerminalSession();
+}
+
+window.addEventListener("message", event => {
+  if (event.source !== window.parent) return;
+  if (!STOS_GATEWAY.parentOrigin || event.origin !== STOS_GATEWAY.parentOrigin) return;
+  const data = event.data;
+  if (!data || typeof data !== "object") return;
+  if (data.type === "stos:ticket") acceptGatewayTicket(data);
+});
+
+window.addEventListener("load", () => {
+  stosPostToParent({ type: "stos:ready", version: "4" });
+});
+
+window.addEventListener("resize", () => {
+  const session = activeTerm();
+  if (gatewayState(session) === "remote") resizeRemoteTerminal(session);
+});
+
+function saveTerminalState(){
+  try{
+    const payload = terminalSessions.map(s=>({
+      id:s.id,title:s.title,cwd:s.cwd,history:s.history.slice(-200),
+      lines:s.lines.slice(-500),startedAt:s.startedAt,commandCount:s.commandCount||0,
+      isTest:!!s.isTest,pinned:!!s.pinned,profile:s.profile||"local"
+    }));
+    localStorage.setItem(STOS_TERMINAL_STATE_KEY, JSON.stringify({
+      counter:terminalSessionCounter,
+      active:activeTerminalSessionId,
+      view:terminalViewMode,
+      sessions:payload
+    }));
+  }catch(_){}
+}
+
+function loadTerminalState(){
+  try{
+    const raw=localStorage.getItem(STOS_TERMINAL_STATE_KEY);
+    if (!raw) return false;
+    const data=JSON.parse(raw);
+    if (!Array.isArray(data.sessions) || !data.sessions.length) return false;
+    terminalSessions.length=0;
+    data.sessions.slice(0,STOS_MAX_TERMINALS).forEach(s=>{
+      terminalSessions.push({
+        id:Number(s.id)||++terminalSessionCounter,
+        title:String(s.title||"Terminal"),
+        cwd:Array.isArray(s.cwd)?s.cwd:[],
+        history:Array.isArray(s.history)?s.history:[],
+        historyIndex:Array.isArray(s.history)?s.history.length:0,
+        lines:Array.isArray(s.lines)?s.lines:[],
+        startedAt:Number(s.startedAt)||Date.now(),
+        commandCount:Number(s.commandCount)||0,
+        isTest:!!s.isTest,
+        pinned:!!s.pinned,
+        profile:String(s.profile||"local")
+      });
+    });
+    terminalSessionCounter=Math.max(
+      Number(data.counter)||0,
+      ...terminalSessions.map(s=>Number(s.id)||0)
+    );
+    activeTerminalSessionId =
+      terminalSessions.some(s=>s.id===data.active) ? data.active : terminalSessions[0].id;
+    terminalViewMode = data.view==="focus" ? "focus" : "wall";
+    return true;
+  }catch(_){
+    return false;
+  }
+}
+
+function ensureDefaultTerminalFleet(){
+  // Preserve restored sessions, but ensure the seven pinned operational slots exist.
+  for (let n=1;n<=STOS_DEFAULT_OPERATIONAL_TERMINALS;n++){
+    const title=`Terminal ${n}`;
+    if (!terminalSessions.some(s=>s.title===title && s.pinned && !s.isTest)){
+      createTerminalSession({title,pinned:true,silent:true});
+    }
+  }
+  if (!terminalSessions.some(s=>s.isTest)){
+    createTerminalSession({title:"TEST",pinned:true,isTest:true,profile:"test",silent:true});
+  }
+  if (!activeTerminalSessionId) activeTerminalSessionId=terminalSessions[0]?.id||null;
+  saveTerminalState();
+}
+
+function showWorkspace(which){
+  const terminal = which === "terminal";
+  termUI.editorWorkspace?.classList.toggle("hiddenWorkspace", terminal);
+  termUI.terminalWorkspace?.classList.toggle("active", terminal);
+  termUI.editorBtn?.classList.toggle("active", !terminal);
+  termUI.terminalBtn?.classList.toggle("active", terminal);
+  if (terminal){
+    if (!terminalSessions.length) createTerminalSession();
+    renderTerminalSession();
+    setTimeout(()=>termUI.input?.focus(), 0);
+  }
+}
+
+termUI.editorBtn?.addEventListener("click",()=>showWorkspace("editor"));
+termUI.terminalBtn?.addEventListener("click",()=>showWorkspace("terminal"));
+termUI.newBtn?.addEventListener("click",()=>createTerminalSession());
+termUI.disconnectBtn?.addEventListener("click",()=>{
+  const session=activeTerm();
+  if (session?.gateway) disconnectGatewaySession(session,true);
+});
+termUI.wallBtn?.addEventListener("click",()=>setTerminalView("wall"));
+termUI.focusBtn?.addEventListener("click",()=>setTerminalView("focus"));
+
+function setTerminalView(mode){
+  terminalViewMode = mode==="focus" ? "focus" : "wall";
+  if (termUI.wall) termUI.wall.hidden = terminalViewMode!=="wall";
+  if (termUI.focusShell) termUI.focusShell.hidden = terminalViewMode!=="focus";
+  termUI.wallBtn?.classList.toggle("active",terminalViewMode==="wall");
+  termUI.focusBtn?.classList.toggle("active",terminalViewMode==="focus");
+  renderTerminalSession();
+  showRemotePaneForActiveSession();
+  saveTerminalState();
+  if (terminalViewMode==="focus" && gatewayState(activeTerm())!=="remote") setTimeout(()=>termUI.input?.focus(),0);
+}
+
+function nextOperationalTerminalNumber(){
+  const nums=terminalSessions
+    .filter(s=>!s.isTest)
+    .map(s=>{
+      const m=String(s.title||"").match(/^Terminal\s+(\d+)$/i);
+      return m ? Number(m[1]) : 0;
+    });
+  return Math.max(0,...nums)+1;
+}
+
+function createTerminalSession(options={}){
+  if (terminalSessions.length>=STOS_MAX_TERMINALS){
+    alert(`STOS supports up to ${STOS_MAX_TERMINALS} simultaneous client sessions in this build.`);
+    return null;
+  }
+  const id = ++terminalSessionCounter;
+  const isTest=!!options.isTest;
+  const session={
+    id,
+    title:options.title || `Terminal ${nextOperationalTerminalNumber()}`,
+    cwd:[],
+    history:[],
+    historyIndex:0,
+    startedAt:Date.now(),
+    commandCount:0,
+    isTest,
+    pinned:!!options.pinned,
+    profile:options.profile || (isTest ? "test" : "local"),
+    lines:[
+      {text:isTest ? "Sovereign Terminal OS · TEST Shell" : "Sovereign Terminal OS · Local Shell",cls:isTest?"warn":"accent"},
+      {text:isTest
+        ? "Reserved TEST profile. Browser-local mode shares the Mini Cloud filesystem; disposable process isolation requires the gateway sandbox."
+        : "Browser-local sandbox. No host OS or remote server authority is active.",cls:"muted"},
+      {text:"Type 'help' for available commands.",cls:"muted"}
+    ]
+  };
+  terminalSessions.push(session);
+  activeTerminalSessionId=id;
+  saveTerminalState();
+  if (!options.silent){
+    renderTerminalTabs();
+    renderTerminalSession();
+    showWorkspace("terminal");
+    setTerminalView("focus");
+  }
+  return session;
+}
+
+function closeTerminalSession(id){
+  const idx = terminalSessions.findIndex(s=>s.id===id);
+  if (idx < 0) return;
+  const target=terminalSessions[idx];
+  if (target.pinned){
+    const label=target.isTest ? "TEST" : target.title;
+    const prev=activeTerminalSessionId;
+    activeTerminalSessionId=target.id;
+    termWrite(`${label} is a pinned STOS slot and remains running.`, "warn");
+    activeTerminalSessionId=prev;
+    renderTerminalSession();
+    return;
+  }
+  terminalSessions.splice(idx,1);
+  if (!terminalSessions.length){
+    ensureDefaultTerminalFleet();
+  }
+  if (activeTerminalSessionId === id){
+    activeTerminalSessionId = terminalSessions[Math.max(0,idx-1)]?.id || terminalSessions[0]?.id || null;
+  }
+  saveTerminalState();
+  renderTerminalTabs();
+  renderTerminalSession();
+}
+
+function activeTerm(){
+  return terminalSessions.find(s=>s.id===activeTerminalSessionId) || null;
+}
+
+function renderTerminalTabs(){
+  if (!termUI.tabs) return;
+  termUI.tabs.innerHTML = "";
+  terminalSessions.forEach(session=>{
+    const wrap = document.createElement("div");
+    wrap.style.display="flex";
+    wrap.style.alignItems="center";
+    wrap.style.gap="2px";
+
+    const btn = document.createElement("button");
+    btn.type="button";
+    btn.className="termSessionTab" +
+      (session.isTest ? " test" : "") +
+      (session.id===activeTerminalSessionId ? " active" : "");
+    btn.textContent=session.title;
+    btn.title=session.isTest
+      ? "Reserved TEST terminal"
+      : (session.pinned ? "Pinned operational terminal" : "Terminal session");
+    btn.onclick=()=>{
+      activeTerminalSessionId=session.id;
+      setTerminalView("focus");
+      renderTerminalTabs();
+      renderTerminalSession();
+      termUI.input?.focus();
+    };
+
+    wrap.append(btn);
+
+    if (!session.pinned){
+      const x = document.createElement("button");
+      x.type="button";
+      x.textContent="×";
+      x.title="Close terminal";
+      x.style.width="auto";
+      x.style.margin="0";
+      x.style.padding="3px 6px";
+      x.style.border="none";
+      x.style.background="transparent";
+      x.style.color="#647386";
+      x.onclick=(event)=>{event.stopPropagation();closeTerminalSession(session.id);};
+      wrap.appendChild(x);
+    }
+
+    termUI.tabs.appendChild(wrap);
+  });
+  if (termUI.countBadge){
+    const tests=terminalSessions.filter(s=>s.isTest).length;
+    termUI.countBadge.textContent=`${terminalSessions.length} RUNNING${tests?" · TEST READY":""}`;
+  }
+}
+
+function termPath(names){
+  return "/" + (names || []).join("/");
+}
+
+function termPromptText(session=activeTerm()){
+  const path = session ? termPath(session.cwd) : "/";
+  const compact = path === "/" ? "/" : path;
+  const identity=session?.isTest ? "test@local" : "sovereign@local";
+  return `${identity}:${compact}$`;
+}
+
+function formatUptime(startedAt){
+  const total=Math.max(0,Math.floor((Date.now()-(startedAt||Date.now()))/1000));
+  const h=Math.floor(total/3600);
+  const m=Math.floor((total%3600)/60);
+  const s=total%60;
+  return h ? `${h}h ${m}m` : (m ? `${m}m ${s}s` : `${s}s`);
+}
+
+function renderTerminalWall(){
+  if (!termUI.wall) return;
+  termUI.wall.innerHTML="";
+  terminalSessions.forEach(session=>{
+    const card=document.createElement("section");
+    card.className="termWallCard" +
+      (session.id===activeTerminalSessionId ? " active" : "") +
+      (session.isTest ? " test" : "");
+    card.dataset.sessionId=String(session.id);
+
+    const head=document.createElement("div");
+    head.className="termWallHead";
+
+    const title=document.createElement("div");
+    title.className="termWallTitle";
+    title.textContent=session.title;
+
+    const state=document.createElement("span");
+    const gState=gatewayState(session);
+    state.className="termWallState" +
+      (gState==="remote" ? " remote" :
+       gState==="connecting" || gState==="ticket" ? " connecting" :
+       gState==="error" ? " error" : "");
+    state.textContent=
+      gState==="remote" ? "REMOTE" :
+      gState==="connecting" || gState==="ticket" ? "CONNECTING" :
+      gState==="error" ? "ERROR" :
+      (session.isTest ? "TEST" : "LOCAL");
+
+    const pinned=document.createElement("span");
+    pinned.className=session.isTest ? "termTestBadge" : "termPinnedBadge";
+    pinned.textContent=session.isTest ? "RESERVED" : (session.pinned ? "PINNED" : "SESSION");
+
+    const meta=document.createElement("span");
+    meta.className="termWallMeta";
+    meta.textContent=`${formatUptime(session.startedAt)} · ${session.commandCount||0} cmd`;
+
+    const focus=document.createElement("button");
+    focus.type="button";
+    focus.className="termWallFocus";
+    focus.textContent="Focus";
+    focus.onclick=()=>{
+      activeTerminalSessionId=session.id;
+      setTerminalView("focus");
+    };
+
+    head.append(title,state,pinned,meta,focus);
+
+    const output=document.createElement("div");
+    output.className="termWallOutput";
+    const wallLines = gatewayState(session)==="remote"
+      ? (session.remotePreview||[]).slice(-12).map(text=>({text,cls:""}))
+      : session.lines.slice(-12);
+    wallLines.forEach(line=>{
+      const div=document.createElement("div");
+      div.className="termLine" + (line.cls ? " "+line.cls : "");
+      div.textContent=line.text;
+      output.appendChild(div);
+    });
+
+    const row=document.createElement("div");
+    row.className="termWallPromptRow";
+    const prompt=document.createElement("span");
+    prompt.className="termWallPrompt";
+    prompt.textContent=termPromptText(session);
+    const input=document.createElement("input");
+    input.className="termWallInput";
+    input.type="text";
+    input.autocomplete="off";
+    input.autocapitalize="off";
+    input.spellcheck=false;
+    input.setAttribute("aria-label",`${session.title} command`);
+    input.addEventListener("focus",()=>{
+      activeTerminalSessionId=session.id;
+      renderTerminalTabs();
+      card.classList.add("active");
+    });
+    input.addEventListener("keydown",event=>{
+      if (event.key==="Enter"){
+        event.preventDefault();
+        const raw=input.value;
+        input.value="";
+        activeTerminalSessionId=session.id;
+        executeTerminalCommand(raw);
+      }else if (event.key==="ArrowUp"){
+        event.preventDefault();
+        if (!session.history.length) return;
+        session.historyIndex=Math.max(0,session.historyIndex-1);
+        input.value=session.history[session.historyIndex]||"";
+      }else if (event.key==="ArrowDown"){
+        event.preventDefault();
+        session.historyIndex=Math.min(session.history.length,session.historyIndex+1);
+        input.value=session.historyIndex>=session.history.length ? "" : session.history[session.historyIndex];
+      }
+    });
+    row.append(prompt,input);
+
+    card.append(head,output,row);
+    termUI.wall.appendChild(card);
+    output.scrollTop=output.scrollHeight;
+  });
+}
+
+function renderTerminalSession(){
+  const session=activeTerm();
+  if (!session || !termUI.output) return;
+
+  if (termUI.wall) termUI.wall.hidden = terminalViewMode!=="wall";
+  if (termUI.focusShell) termUI.focusShell.hidden = terminalViewMode!=="focus";
+  termUI.wallBtn?.classList.toggle("active",terminalViewMode==="wall");
+  termUI.focusBtn?.classList.toggle("active",terminalViewMode==="focus");
+
+  termUI.output.innerHTML="";
+  session.lines.forEach(line=>{
+    const div=document.createElement("div");
+    div.className="termLine" + (line.cls ? " "+line.cls : "");
+    div.textContent=line.text;
+    termUI.output.appendChild(div);
+  });
+  if (termUI.prompt) termUI.prompt.textContent=termPromptText(session);
+  if (termUI.input && terminalViewMode==="focus") termUI.input.value="";
+  termUI.output.scrollTop=termUI.output.scrollHeight;
+  renderTerminalTabs();
+  renderTerminalWall();
+  showRemotePaneForActiveSession();
+
+  if (termUI.gatewayBadge){
+    const remoteCount=terminalSessions.filter(s=>gatewayState(s)==="remote").length;
+    termUI.gatewayBadge.textContent=remoteCount ? `GATEWAY ${remoteCount} ●` : "GATEWAY ○";
+    termUI.gatewayBadge.classList.toggle("on",remoteCount>0);
+  }
+
+  saveTerminalState();
+}
+
+function termWrite(text="", cls=""){
+  const session=activeTerm();
+  if (!session) return;
+  String(text).split("\n").forEach(part=>session.lines.push({text:part,cls}));
+  // Keep a generous but bounded scrollback.
+  if (session.lines.length > 3000) session.lines=session.lines.slice(-2500);
+}
+
+function termRefresh(){
+  renderTerminalSession();
+  setTimeout(()=>termUI.input?.focus(),0);
+}
+
+function tokenizeCommand(input){
+  const tokens=[];
+  let cur="", quote=null, escaped=false;
+  for (const ch of String(input||"")){
+    if (escaped){cur+=ch;escaped=false;continue;}
+    if (ch==="\\"){escaped=true;continue;}
+    if (quote){
+      if (ch===quote) quote=null;
+      else cur+=ch;
+      continue;
+    }
+    if (ch==='"' || ch==="'"){quote=ch;continue;}
+    if (/\s/.test(ch)){
+      if (cur){tokens.push(cur);cur="";}
+    }else cur+=ch;
+  }
+  if (cur) tokens.push(cur);
+  return tokens;
+}
+
+function normalizeVPath(pathStr, baseNames){
+  const raw=String(pathStr ?? "").trim();
+  const absolute=raw.startsWith("/");
+  const parts=(absolute ? [] : (baseNames||[]).slice());
+  const incoming=raw.split("/").filter(Boolean);
+  for (const part of incoming){
+    if (part===".") continue;
+    if (part==="..") parts.pop();
+    else parts.push(part);
+  }
+  return parts;
+}
+
+function resolveVNames(names){
+  let node=fs;
+  const indices=[];
+  for (const name of names){
+    if (!node || node.type!=="folder" || !Array.isArray(node.children)) return null;
+    const idx=node.children.findIndex(child=>child.name===name);
+    if (idx<0) return null;
+    node=node.children[idx];
+    indices.push(idx);
+  }
+  return {node,indices,names:names.slice()};
+}
+
+function resolveVPath(pathStr, baseNames=activeTerm()?.cwd || []){
+  const names=normalizeVPath(pathStr || ".",baseNames);
+  return resolveVNames(names);
+}
+
+function resolveParentForCreate(pathStr, baseNames=activeTerm()?.cwd || []){
+  const names=normalizeVPath(pathStr,baseNames);
+  if (!names.length) return null;
+  const name=names[names.length-1];
+  const parentNames=names.slice(0,-1);
+  const parentResolved=resolveVNames(parentNames);
+  if (!parentResolved || parentResolved.node.type!=="folder") return null;
+  return {name,parent:parentResolved.node,parentNames,parentIndices:parentResolved.indices};
+}
+
+function listFolder(node, showAll=false){
+  if (!node || node.type!=="folder") return [];
+  return (node.children||[])
+    .filter(child=>showAll || !String(child.name||"").startsWith("."))
+    .map(child=>child.type==="folder" ? child.name+"/" : child.name);
+}
+
+function treeLines(node,prefix="",depth=0,maxDepth=20){
+  if (!node || node.type!=="folder" || depth>maxDepth) return [];
+  const children=node.children||[];
+  const lines=[];
+  children.forEach((child,index)=>{
+    const last=index===children.length-1;
+    lines.push(prefix+(last?"└── ":"├── ")+child.name+(child.type==="folder"?"/":""));
+    if (child.type==="folder"){
+      lines.push(...treeLines(child,prefix+(last?"    ":"│   "),depth+1,maxDepth));
+    }
+  });
+  return lines;
+}
+
+function cloneVNode(node){
+  return JSON.parse(JSON.stringify(node));
+}
+
+function openResolvedInEditor(resolved){
+  if (!resolved) return false;
+  openNode(resolved.node,resolved.indices);
+  showWorkspace("editor");
+  return true;
+}
+
+function terminalHelp(){
+  return [
+    "LOCAL FILESYSTEM",
+    "  pwd                 print working directory",
+    "  ls [path]           list directory",
+    "  tree [path]         recursive directory tree",
+    "  cd [path]           change virtual directory",
+    "  cat <file>          display text file",
+    "  mkdir <dir>         create directory",
+    "  touch <file>        create empty text file",
+    "  rm [-r] <path>      delete file/folder (confirmation required for folders)",
+    "  cp <src> <dst>      copy a file or folder",
+    "  mv <src> <dst>      move/rename a file or folder",
+    "  open <path>         open file/folder in Editor",
+    "  edit <file>         open text file in Editor",
+    "  launch <index.html> launch a local Mini Cloud app",
+    "  apps                list detected local apps",
+    "",
+    "WORKSTATION",
+    "  history             command history",
+    "  clear               clear terminal scrollback",
+    "  echo <text>         print text",
+    "  date                browser date/time",
+    "  whoami              current local shell identity",
+    "  status              security + runtime status",
+    "  vault               open encrypted Private Vault",
+    "  terminals | fleet   show every STOS terminal and status",
+    "  servers             show local fleet + remote terminal profiles/status",
+    "  capsule             explain Code Capsule commands",
+    "  exit                close an added session (pinned fleet slots stay running)",
+    "",
+    "REMOTE SHELLS",
+    "  connect [profile]   request one-use Wix-brokered gateway session",
+    "  disconnect          close gateway session and return to local STOS",
+    "",
+    "Keyboard: ↑/↓ history · Tab path completion · Ctrl/Cmd+L clear · Ctrl+C cancel input"
+  ].join("\n");
+}
+
+function detectApps(folder=fs,prefix=[]){
+  const found=[];
+  for (const child of folder.children||[]){
+    if (child.type!=="folder") continue;
+    const next=prefix.concat(child.name);
+    if ((child.children||[]).some(x=>x.type==="file" && x.name==="index.html")) found.push("/"+next.join("/"));
+    found.push(...detectApps(child,next));
+  }
+  return found;
+}
+
+function removeResolved(resolved){
+  if (!resolved || !resolved.names.length) return false;
+  const parent=resolveVNames(resolved.names.slice(0,-1));
+  if (!parent || parent.node.type!=="folder") return false;
+  const name=resolved.names[resolved.names.length-1];
+  const idx=(parent.node.children||[]).findIndex(x=>x.name===name);
+  if (idx<0) return false;
+  parent.node.children.splice(idx,1);
+  return true;
+}
+
+async function executeTerminalCommand(raw){
+  const session=activeTerm();
+  if (!session) return;
+
+  const rawInput=String(raw||"");
+  const input=rawInput.trim();
+
+  if (gatewayState(session)==="remote"){
+    const ws=gatewaySocket(session);
+    if (!ws || ws.readyState!==WebSocket.OPEN){
+      termWrite("Gateway socket unavailable. Use the Disconnect control and reconnect.","error");
+      termRefresh();
+      return;
+    }
+    if (input) ws.send(JSON.stringify({type:"input",data:rawInput+"\r"}));
+    return;
+  }
+
+  termWrite(`${termPromptText(session)} ${input}`,"command");
+  if (!input){termRefresh();return;}
+
+  session.history.push(input);
+  session.commandCount=(session.commandCount||0)+1;
+  session.history=session.history.slice(-500);
+  session.historyIndex=session.history.length;
+
+  const args=tokenizeCommand(input);
+  const command=(args.shift()||"").toLowerCase();
+
+  try{
+    if (command==="help") termWrite(terminalHelp());
+    else if (command==="pwd") termWrite(termPath(session.cwd));
+    else if (command==="clear") session.lines=[];
+    else if (command==="history") session.history.forEach((h,i)=>termWrite(`${String(i+1).padStart(3," ")}  ${h}`));
+    else if (command==="date") termWrite(new Date().toString());
+    else if (command==="echo") termWrite(args.join(" "));
+    else if (command==="whoami") termWrite(session.isTest
+      ? "test@local · reserved STOS TEST profile"
+      : "sovereign@local · browser-local Mini Cloud shell");
+    else if (command==="status"){
+      termWrite("Sovereign Terminal OS", "accent");
+      termWrite("local-shell:   ACTIVE", "success");
+      termWrite(`filesystem:    localStorage cloudFS · ${(JSON.stringify(fs).length/1024).toFixed(1)} KiB serialized`);
+      termWrite(`vault:         ${blackHolePassphrase ? "UNLOCKED (browser-local AES-GCM)" : "LOCKED"}`, blackHolePassphrase?"success":"muted");
+      termWrite(`terminal:      ${session.title}${session.pinned?" · PINNED":""}${session.isTest?" · TEST":""}`);
+      termWrite(`fleet:         ${terminalSessions.length} client shells running`);
+      termWrite(
+        `gateway:       ${gatewayState(session)==="remote" ? "CONNECTED · "+session.gateway.profileId : gatewayState(session).toUpperCase()+" · Wix broker"}`,
+        gatewayState(session)==="remote" ? "success" : "warn"
+      );
+      termWrite(session.isTest
+        ? "test isolation: browser-local designation only · disposable gateway sandbox required for true process isolation"
+        : "host commands: BLOCKED in browser-local shell", session.isTest?"warn":"muted");
+    }
+    else if (command==="ls"){
+      const showAll=args.includes("-a") || args.includes("-la") || args.includes("-al");
+      const pathArg=args.find(a=>!a.startsWith("-")) || ".";
+      const r=resolveVPath(pathArg,session.cwd);
+      if (!r) termWrite(`ls: ${pathArg}: No such file or directory`,"error");
+      else if (r.node.type==="folder") termWrite(listFolder(r.node,showAll).join("  ") || "(empty)");
+      else termWrite(r.node.name);
+    }
+    else if (command==="tree"){
+      const pathArg=args[0] || ".";
+      const r=resolveVPath(pathArg,session.cwd);
+      if (!r) termWrite(`tree: ${pathArg}: No such file or directory`,"error");
+      else if (r.node.type!=="folder") termWrite(r.node.name);
+      else {
+        termWrite((r.names.length ? r.node.name+"/" : "/"));
+        const lines=treeLines(r.node);
+        termWrite(lines.length?lines.join("\n"):"(empty)");
+      }
+    }
+    else if (command==="cd"){
+      const pathArg=args[0] || "/";
+      const r=resolveVPath(pathArg,session.cwd);
+      if (!r) termWrite(`cd: ${pathArg}: No such directory`,"error");
+      else if (r.node.type!=="folder") termWrite(`cd: ${pathArg}: Not a directory`,"error");
+      else session.cwd=r.names;
+    }
+    else if (command==="cat"){
+      if (!args[0]) termWrite("cat: missing file operand","error");
+      else {
+        const r=resolveVPath(args[0],session.cwd);
+        if (!r) termWrite(`cat: ${args[0]}: No such file`,"error");
+        else if (r.node.type!=="file") termWrite(`cat: ${args[0]}: Is a directory`,"error");
+        else if (r.node.fileKind==="image") termWrite(`cat: ${args[0]}: binary image (${r.node.mime||"image"})`,"warn");
+        else termWrite(decrypt(r.node.content||""));
+      }
+    }
+    else if (command==="mkdir"){
+      if (!args[0]) termWrite("mkdir: missing operand","error");
+      else {
+        const p=resolveParentForCreate(args[0],session.cwd);
+        if (!p) termWrite(`mkdir: cannot create '${args[0]}'`,"error");
+        else if ((p.parent.children||[]).some(x=>x.name===p.name)) termWrite(`mkdir: ${p.name}: File exists`,"error");
+        else {p.parent.children.push({name:p.name,type:"folder",children:[]});persist();termWrite(`created ${args[0]}`,"success");}
+      }
+    }
+    else if (command==="touch"){
+      if (!args[0]) termWrite("touch: missing file operand","error");
+      else {
+        const existing=resolveVPath(args[0],session.cwd);
+        if (existing){
+          if (existing.node.type!=="file") termWrite(`touch: ${args[0]}: Is a directory`,"error");
+          else termWrite(`updated timestamp semantics are not persisted; file already exists`,"muted");
+        }else{
+          const p=resolveParentForCreate(args[0],session.cwd);
+          if (!p) termWrite(`touch: cannot create '${args[0]}'`,"error");
+          else {p.parent.children.push({name:p.name,type:"file",content:"",versions:[],fileKind:"text"});persist();termWrite(`created ${args[0]}`,"success");}
+        }
+      }
+    }
+    else if (command==="rm"){
+      const recursive=args.includes("-r") || args.includes("-rf") || args.includes("-fr");
+      const target=args.find(a=>!a.startsWith("-"));
+      if (!target) termWrite("rm: missing operand","error");
+      else {
+        const r=resolveVPath(target,session.cwd);
+        if (!r || !r.names.length) termWrite(`rm: ${target}: not found or protected`,"error");
+        else if (r.node.type==="folder" && !recursive) termWrite(`rm: ${target}: is a directory (use -r)`,"error");
+        else {
+          const ok = r.node.type!=="folder" || confirm(`Terminal request: recursively delete '${termPath(r.names)}'? This cannot be undone.`);
+          if (ok && removeResolved(r)){persist();termWrite(`removed ${target}`,"success");}
+        }
+      }
+    }
+    else if (command==="cp" || command==="mv"){
+      if (args.length<2) termWrite(`${command}: source and destination required`,"error");
+      else {
+        const src=resolveVPath(args[0],session.cwd);
+        if (!src || !src.names.length){termWrite(`${command}: ${args[0]}: not found`,"error");}
+        else {
+          let destResolved=resolveVPath(args[1],session.cwd);
+          let destParent, destName;
+          if (destResolved && destResolved.node.type==="folder"){
+            destParent=destResolved.node;destName=src.node.name;
+          }else{
+            const p=resolveParentForCreate(args[1],session.cwd);
+            if (p){destParent=p.parent;destName=p.name;}
+          }
+          if (!destParent) termWrite(`${command}: invalid destination '${args[1]}'`,"error");
+          else if ((destParent.children||[]).some(x=>x.name===destName)) termWrite(`${command}: destination '${destName}' already exists`,"error");
+          else {
+            const copy=cloneVNode(src.node);copy.name=destName;destParent.children.push(copy);
+            if (command==="mv") removeResolved(src);
+            persist();termWrite(`${command==="mv"?"moved":"copied"} ${args[0]} -> ${args[1]}`,"success");
+          }
+        }
+      }
+    }
+    else if (command==="open" || command==="edit"){
+      if (!args[0]) termWrite(`${command}: path required`,"error");
+      else {
+        const r=resolveVPath(args[0],session.cwd);
+        if (!r) termWrite(`${command}: ${args[0]}: not found`,"error");
+        else if (command==="edit" && r.node.type!=="file") termWrite(`edit: ${args[0]}: not a file`,"error");
+        else {openResolvedInEditor(r);return;}
+      }
+    }
+    else if (command==="launch"){
+      if (!args[0]) termWrite("launch: path to index.html required","error");
+      else {
+        const r=resolveVPath(args[0],session.cwd);
+        if (!r) termWrite(`launch: ${args[0]}: not found`,"error");
+        else if (r.node.type!=="file" || r.node.name!=="index.html") termWrite("launch: select an index.html entry file","error");
+        else {openNode(r.node,r.indices);launchApp();}
+      }
+    }
+    else if (command==="apps"){
+      const apps=detectApps();
+      termWrite(apps.length ? apps.join("\n") : "No local apps with index.html detected.");
+    }
+    else if (command==="vault"){
+      bhvRevealUi();
+      termWrite("Private Vault opened. Encryption remains the security boundary.","accent");
+    }
+    else if (command==="terminals" || command==="fleet"){
+      termWrite(`STOS fleet · ${terminalSessions.length}/${STOS_MAX_TERMINALS} running`, "accent");
+      terminalSessions.forEach(s=>termWrite(
+        `${s.id===activeTerminalSessionId?"*":" "} ${String(s.title).padEnd(14)} ${s.isTest?"TEST":"LOCAL"} · ${s.pinned?"PINNED":"SESSION"} · ${formatUptime(s.startedAt)} · ${s.commandCount||0} commands`,
+        s.isTest?"warn":""
+      ));
+    }
+    else if (command==="servers"){
+      termWrite("STOS TERMINAL FLEET", "accent");
+      terminalSessions.forEach(s=>termWrite(
+        `  ${String(s.title).padEnd(12)} ${s.isTest?"TEST ":"LOCAL"}  RUNNING  ${s.pinned?"PINNED":""}`,
+        s.isTest ? "warn" : "success"
+      ));
+      termWrite("", "muted");
+      termWrite("GATEWAY PROFILES", "accent");
+      for (let i=1;i<=7;i++) termWrite(`  terminal-${i}   fixed server-side SSH/tmux target`, "muted");
+      termWrite("  test         disposable rootless Podman target · no production access", "warn");
+    }
+    else if (command==="connect"){
+      requestGatewayConnection(session,args[0]||"");
+    }
+    else if (command==="disconnect"){
+      if (session.gateway) disconnectGatewaySession(session,true);
+      else termWrite("No gateway session is active.","muted");
+    }
+    else if (command==="capsule"){
+      termWrite("Code Capsule remains available from the sidebar.");
+      termWrite("Select an app's index.html in Editor, then use Collapse App / Expand App / Capsule Manifest.","muted");
+    }
+    else if (command==="exit"){
+      if (session.pinned){
+        termWrite(`${session.title} is pinned and remains running.`, "warn");
+      }else{
+        closeTerminalSession(session.id);
+        return;
+      }
+    }
+    else termWrite(`${command}: command not found. Type 'help'.`,"error");
+  }catch(err){
+    termWrite(`terminal error: ${err?.message || err}`,"error");
+  }
+
+  termRefresh();
+}
+
+function pathCompletionCandidates(raw){
+  const session=activeTerm();
+  if (!session) return [];
+  const tokens=tokenizeCommand(raw);
+  if (!tokens.length) return [];
+  const last=tokens[tokens.length-1] || "";
+  const slash=last.lastIndexOf("/");
+  const dirPart=slash>=0 ? last.slice(0,slash+1) : "";
+  const prefix=slash>=0 ? last.slice(slash+1) : last;
+  const basePath=dirPart || ".";
+  const r=resolveVPath(basePath,session.cwd);
+  if (!r || r.node.type!=="folder") return [];
+  return (r.node.children||[])
+    .filter(child=>child.name.startsWith(prefix))
+    .map(child=>dirPart+child.name+(child.type==="folder"?"/":""));
+}
+
+function applyTabCompletion(){
+  const input=termUI.input;
+  if (!input) return;
+  const raw=input.value;
+  const candidates=pathCompletionCandidates(raw);
+  if (!candidates.length) return;
+  const tokens=tokenizeCommand(raw);
+  const last=tokens[tokens.length-1] || "";
+  if (candidates.length===1){
+    const idx=raw.lastIndexOf(last);
+    input.value=(idx>=0?raw.slice(0,idx):"")+candidates[0];
+  }else{
+    termWrite(candidates.join("  "),"muted");
+    termRefresh();
+    input.value=raw;
+  }
+}
+
+termUI.input?.addEventListener("keydown",event=>{
+  const session=activeTerm();
+  if (!session) return;
+  if (event.key==="Enter"){
+    event.preventDefault();
+    const raw=termUI.input.value;
+    termUI.input.value="";
+    executeTerminalCommand(raw);
+  }else if (event.key==="ArrowUp"){
+    event.preventDefault();
+    if (!session.history.length) return;
+    session.historyIndex=Math.max(0,session.historyIndex-1);
+    termUI.input.value=session.history[session.historyIndex] || "";
+    queueMicrotask(()=>termUI.input.setSelectionRange(termUI.input.value.length,termUI.input.value.length));
+  }else if (event.key==="ArrowDown"){
+    event.preventDefault();
+    if (!session.history.length) return;
+    session.historyIndex=Math.min(session.history.length,session.historyIndex+1);
+    termUI.input.value=session.historyIndex>=session.history.length ? "" : session.history[session.historyIndex];
+  }else if (event.key==="Tab"){
+    event.preventDefault();
+    applyTabCompletion();
+  }else if ((event.ctrlKey || event.metaKey) && String(event.key).toLowerCase()==="l"){
+    event.preventDefault();
+    session.lines=[];
+    termRefresh();
+  }else if (event.ctrlKey && String(event.key).toLowerCase()==="c"){
+    event.preventDefault();
+    if (termUI.input.value){
+      termWrite(`${termPromptText(session)} ${termUI.input.value}^C`,"command");
+      termUI.input.value="";
+    }else termWrite("^C","muted");
+    termRefresh();
+  }else if (event.ctrlKey && String(event.key).toLowerCase()==="d"){
+    event.preventDefault();
+    if (!termUI.input.value) closeTerminalSession(session.id);
+  }
+});
+
+// Keep terminal security indicator synchronized with the existing vault state.
+const originalBhvSetUnlocked = bhvSetUnlocked;
+bhvSetUnlocked = function(unlocked){
+  originalBhvSetUnlocked(unlocked);
+  if (termUI.vaultBadge){
+    termUI.vaultBadge.textContent = unlocked ? "VAULT ●" : "VAULT LOCKED";
+    termUI.vaultBadge.classList.toggle("on",!!unlocked);
+  }
+};
+
+// Restore the STOS fleet, then guarantee seven operational terminals plus TEST.
+loadTerminalState();
+ensureDefaultTerminalFleet();
+renderTerminalTabs();
+renderTerminalSession();
+setTerminalView(terminalViewMode);
+showWorkspace("editor");
+
+
+/* ==========================
+   PERSIST
+========================== */
+function persist() {
+  localStorage.setItem("cloudFS", JSON.stringify(fs));
+  renderTree();
+}
+
+renderTree();
+updatePathBar([]);
+</script>
+
+</body>
+</html>
